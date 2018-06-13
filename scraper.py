@@ -3,6 +3,7 @@
 import binascii
 import socket
 import struct
+import argparse
 from random import randrange  # to generate random transaction_id
 
 from utils import Utils
@@ -61,5 +62,26 @@ def scrape(infohash):
 
 
 if __name__ == "__main__":
-    for infohash in torrent_hash:
-        scrape(infohash)
+    def check_infohash(value):
+        if not Utils.is_40_char_long(value):
+            raise argparse.ArgumentTypeError('Infohash is not valid')
+        else:
+            return value
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i",
+                        "--infohash",
+                        help="A torrents infohash or a file path consisting of infohashes",
+                        type=check_infohash,
+                        default="95105D919C10E64AE4FA31067A8D37CCD33FE92D")
+    parser.add_argument("-t",
+                        "--tracker",
+                        help="Entered in the format :tracker",
+                        type=str,
+                        default="tracker.coppersurfer.tk")
+    parser.add_argument("-p",
+                        "--port",
+                        help="Entered in the format :port",
+                        type=int,
+                        default=6969)
+    args, unknown = parser.parse_known_args()
+    scrape(args.infohash)
