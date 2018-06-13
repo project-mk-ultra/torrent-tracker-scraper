@@ -54,3 +54,10 @@ Fork the code, make your changes and create a pull request.
 Send me an email <ziggs@airmail.cc> for any queries.
  
 I'll get back to you in a couple of hours at most.
+
+
+### Behind the scenes
+
+For a detailed quick rundown of whats going on behind the scenes
+
+<https://districtofzaun.info/python/programming/torrents/2018/04/05/scraping-udp-trackers-using-python>
