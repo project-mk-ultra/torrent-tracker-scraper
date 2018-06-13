@@ -6,7 +6,7 @@ import struct
 import argparse
 from random import randrange  # to generate random transaction_id
 
-from utils import Utils
+from . import utils
 
 
 def scrape(infohash, tracker, port):
@@ -31,7 +31,7 @@ def scrape(infohash, tracker, port):
     action, transaction_id, connection_id = struct.unpack(">LLQ", res)
 
     packet_hashes = str()
-    if not Utils.is_40_char_long(infohash):
+    if not utils.Utils.is_40_char_long(infohash):
         print("Skipping infohash {0}".format(infohash))
         sock.close()
         return "Invalid infohash {0}".format(infohash)
@@ -57,7 +57,7 @@ def scrape(infohash, tracker, port):
 
 if __name__ == "__main__":
     def check_infohash(value):
-        if not Utils.is_40_char_long(value):
+        if not utils.Utils.is_40_char_long(value):
             raise argparse.ArgumentTypeError('Infohash is not valid')
         else:
             return value

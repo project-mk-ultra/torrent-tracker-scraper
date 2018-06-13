@@ -1,13 +1,13 @@
 # tests/scrape_test.py
 import unittest
 
-import scraper
+from torrent_tracker_scraper import scraper
 
 
 class ScrapeTest(unittest.TestCase):
 
     def test_scraper(self):
-        f = open('../good_infohashes.txt', 'rb')
+        f = open('good_infohashes.txt', 'rb')
 
         content = f.readlines()
 
@@ -24,7 +24,7 @@ class ScrapeTest(unittest.TestCase):
         f.close()
 
     def test_scraper_infohash_error(self):
-        f = open('../bad_infohashes.txt', 'rb')
+        f = open('bad_infohashes.txt', 'rb')
 
         content = f.readlines()
 
