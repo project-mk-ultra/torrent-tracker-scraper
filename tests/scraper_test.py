@@ -14,7 +14,11 @@ class ScrapeTest(unittest.TestCase):
         for infohash in content:
             infohash = infohash.decode('utf-8')
             infohash = infohash.strip()
-            torrent_infohash, seeders, leechers, complete = scraper.scrape(infohash)
+            torrent_infohash, seeders, leechers, complete = scraper.scrape(
+                infohash,
+                "tracker.coppersurfer.tk",
+                6969
+            )
             self.assertEqual(torrent_infohash, infohash)
 
         f.close()
@@ -27,7 +31,9 @@ class ScrapeTest(unittest.TestCase):
         for infohash in content:
             infohash = infohash.decode('utf-8')
             infohash = infohash.strip()
-            error = scraper.scrape(infohash)
+            error = scraper.scrape(infohash,
+                                   "tracker.coppersurfer.tk",
+                                   6969)
             self.assertEqual(error, "Invalid infohash {0}".format(infohash))
 
         f.close()

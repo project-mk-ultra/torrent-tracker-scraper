@@ -8,19 +8,13 @@ from random import randrange  # to generate random transaction_id
 
 from utils import Utils
 
-# the most stable tracker known out there
-UDP_TRACKER = "tracker.coppersurfer.tk"
-# the default OpenTracker port
-UDP_PORT = 6969
-# random West World episodes
-torrent_hash = ["95105D919C10E64AE4FA31067A8D37CCD33FE92D",
-                "37AFFEA745D2193348"]
 
-
-def scrape(infohash):
+def scrape(infohash, tracker, port):
+    tracker_address = "{0}".format(tracker)
+    print("Using tracker udp://{0}:{1}".format(tracker_address, port))
     # Create the socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect((UDP_TRACKER, UDP_PORT))
+    sock.connect((tracker_address, port))
 
     # Protocol says to keep it that way
     protocol_id = 0x41727101980
@@ -48,7 +42,7 @@ def scrape(infohash):
     sock.send(packet)
 
     # Scrape response
-    res = sock.recv(8 + 12 * len(torrent_hash))
+    res = sock.recv(8 + 12 * len(infohash))
 
     index = 8
     seeders, completed, leechers = struct.unpack(">LLL", res[index:index + 12])
@@ -67,6 +61,7 @@ if __name__ == "__main__":
             raise argparse.ArgumentTypeError('Infohash is not valid')
         else:
             return value
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-i",
                         "--infohash",
@@ -84,4 +79,4 @@ if __name__ == "__main__":
                         type=int,
                         default=6969)
     args, unknown = parser.parse_known_args()
-    scrape(args.infohash)
+    scrape(args.infohash, args.tracker, args.port)
