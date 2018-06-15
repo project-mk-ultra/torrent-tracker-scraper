@@ -63,4 +63,4 @@ I'll get back to you in a couple of hours at most.
 
 For a detailed quick rundown of whats going on behind the scenes
 
-<https://districtofzaun.info/python/programming/torrents/2018/04/05/scraping-udp-trackers-using-python>
+<https://districtofzaun.info/python/programming/tutorial/torrents/2018/04/05/scraping-udp-trackers-using-python>
