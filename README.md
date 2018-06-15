@@ -1,13 +1,9 @@
 ### Torrent Tracker Scraper
 
+A UDP torrent tracker scraper written in Python 3 
+
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-
-### Setup
-
-```bash
-pip install torrent-tracker-scraper
-```
 
 ### Usage
 
@@ -42,6 +38,12 @@ Outputs
 ```bash
 Using tracker udp://tracker.coppersurfer.tk:6969
 95105D919C10E64AE4FA31067A8D37CCD33FE92D, Seeds: 5045, Leechers: 742, Completed: 79802
+```
+
+### Setup
+
+```bash
+pip install torrent-tracker-scraper
 ```
 
 ### Help/Contributing
