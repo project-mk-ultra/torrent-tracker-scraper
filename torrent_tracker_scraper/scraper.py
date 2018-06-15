@@ -87,7 +87,7 @@ def scrape(infohash, tracker_hostname, tracker_port):
     if not Utils.is_40_char_long(infohash):
         logger.warning("Skipping infohash {0}".format(infohash))
         sock.close()
-        logger.warning("Invalid infohash {0}".format(infohash))
+        return "Invalid infohash {0}".format(infohash)
     packet_hashes = bytearray(packet_hashes, 'utf-8') + binascii.unhexlify(infohash)
 
     # Scrape requests

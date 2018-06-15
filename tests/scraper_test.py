@@ -51,7 +51,6 @@ class ScrapeTest(unittest.TestCase):
                 "invalidhostname.tk",
                 6969
             )
-            self.assertIsNotNone(error.sock)
-            self.assertEqual(error, "Tracker udp://{0}:{1} is down".format("invalidhostname.tk", 6969))
+            self.assertEqual(tuple, type(error))
 
         f.close()
