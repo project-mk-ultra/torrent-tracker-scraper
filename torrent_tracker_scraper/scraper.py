@@ -14,9 +14,7 @@ import pygogo as gogo
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 formatter = logging.Formatter(log_format)
 
-logger = gogo.Gogo(
-    hdlr=gogo.handlers.stdout_hdlr(),
-    formatter=formatter).logger
+logger = gogo.Gogo('monolog', monolog=True, formatter=formatter).logger
 
 
 class Utils:
