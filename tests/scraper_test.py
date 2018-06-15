@@ -37,3 +37,21 @@ class ScrapeTest(unittest.TestCase):
             self.assertEqual(error, "Invalid infohash {0}".format(infohash))
 
         f.close()
+
+    def test_bad_tracker(self):
+        f = open('good_infohashes.txt', 'rb')
+
+        content = f.readlines()
+
+        for infohash in content:
+            infohash = infohash.decode('utf-8')
+            infohash = infohash.strip()
+            error = scraper.scrape(
+                infohash,
+                "invalidhostname.tk",
+                6969
+            )
+            self.assertIsNotNone(error.sock)
+            self.assertEqual(error, "Tracker udp://{0}:{1} is down".format("invalidhostname.tk", 6969))
+
+        f.close()

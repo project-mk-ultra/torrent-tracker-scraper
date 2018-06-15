@@ -1,20 +1,75 @@
 # !/usr/bin/env python
 # scrape.py
+import argparse
 import binascii
+import logging
 import socket
 import struct
-import argparse
 from random import randrange  # to generate random transaction_id
 
-from . import utils
+import pygogo as gogo
+
+# setup Logging
+
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+formatter = logging.Formatter(log_format)
+
+logger = gogo.Gogo(
+    hdlr=gogo.handlers.stdout_hdlr(),
+    formatter=formatter).logger
 
 
-def scrape(infohash, tracker, port):
-    tracker_address = "{0}".format(tracker)
-    print("Using tracker udp://{0}:{1}".format(tracker_address, port))
-    # Create the socket
+class Utils:
+    @staticmethod
+    def is_40_char_long(s):
+        """
+        Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
+        :param s:
+        :return: True if infohash is valid, False otherwise
+        """
+        if len(s) == 40:
+            return True
+        else:
+            return False
+
+
+def connect(hostname, port):
+    # create socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect((tracker_address, port))
+    try:
+        # connect socket
+        sock.connect((hostname, port))
+    except:
+        # handle socket connection error
+        logger.warn("Tracker udp://{0}:{1} down falling back to udp://tracker.coppersurfer.tk".format(hostname, port))
+        try:
+            sock.connect(("tracker.coppersurfer.tk", 6969))
+            return sock
+        except Exception as e:
+            sock.close()
+            logger.error(e)
+            logger.error(" Tracker udp://{0}:{1} is also down, check your Internet".format("tracker.coppersurfer.tk",
+                                                                                          6969))
+            return None
+    return sock
+
+
+def scrape(infohash, tracker_hostname, tracker_port):
+    """
+    Takes in an infohash, tracker hostname and listening port. Returns seeders, leechers and completed
+    information
+    :param infohash: SHA-1 representation of the ```info``` key in the torrent file
+    :param tracker_hostname: Hostname of the UDP tracker. The hostname without the scheme.
+    :param tracker_port: Listening port of the UDP tracker
+    :return: infohash, seeders, leechers, completed
+    """
+    logger.info("Using tracker udp://{0}:{1}".format(tracker_hostname, tracker_port))
+
+    # Create the socket
+
+    sock = connect(tracker_hostname, tracker_port)
+    if sock is None:
+        return "Tracker udp://{0}:{1} is down".format(tracker_hostname, tracker_port)
 
     # Protocol says to keep it that way
     protocol_id = 0x41727101980
@@ -31,10 +86,10 @@ def scrape(infohash, tracker, port):
     action, transaction_id, connection_id = struct.unpack(">LLQ", res)
 
     packet_hashes = str()
-    if not utils.Utils.is_40_char_long(infohash):
-        print("Skipping infohash {0}".format(infohash))
+    if not Utils.is_40_char_long(infohash):
+        logger.warning("Skipping infohash {0}".format(infohash))
         sock.close()
-        return "Invalid infohash {0}".format(infohash)
+        logger.warning("Invalid infohash {0}".format(infohash))
     packet_hashes = bytearray(packet_hashes, 'utf-8') + binascii.unhexlify(infohash)
 
     # Scrape requests
@@ -57,10 +112,11 @@ def scrape(infohash, tracker, port):
 
 if __name__ == "__main__":
     def check_infohash(value):
-        if not utils.Utils.is_40_char_long(value):
+        if not Utils.is_40_char_long(value):
             raise argparse.ArgumentTypeError('Infohash is not valid')
         else:
             return value
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-i",
