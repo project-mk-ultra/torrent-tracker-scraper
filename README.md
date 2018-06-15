@@ -24,7 +24,8 @@ Outputs
 
 ```bash
 Using tracker udp://tracker.coppersurfer.tk:6969
-95105D919C10E64AE4FA31067A8D37CCD33FE92D, Seeds: 5045, Leechers: 742, Completed: 79802
+(95105D919C10E64AE4FA31067A8D37CCD33FE92D, 5045, 742, 79802) 
+# it returns a tuple with (infohash, seeders, leechers, completed)
 ```
 
 
