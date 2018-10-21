@@ -6,6 +6,8 @@ import logging
 import socket
 import struct
 from random import randrange  # to generate random transaction_id
+from threading import Timer
+import os
 
 import pygogo as gogo
 
@@ -52,7 +54,7 @@ def connect(hostname, port):
     return sock
 
 
-def scrape(infohash, tracker_hostname, tracker_port, json):
+def scrape(infohash, tracker_hostname, tracker_port, json, timeout):
     """
     Takes in an infohash, tracker hostname and listening port. Returns seeders, leechers and completed
     information
@@ -63,8 +65,11 @@ def scrape(infohash, tracker_hostname, tracker_port, json):
     """
     tracker_udp = "udp://{0}:{1}".format(tracker_hostname, tracker_port)
 
-    # Create the socket
+    # Start a timer
+    timer = Timer(timeout, exit_program)
+    timer.start()
 
+    # Create the socket
     sock = connect(tracker_hostname, tracker_port)
     if sock is None:
         return "Tracker {0} is down".format(tracker_udp)
@@ -109,9 +114,13 @@ def scrape(infohash, tracker_hostname, tracker_port, json):
 
     # close the socket, job is done.
     sock.close()
+    timer.cancel()
 
     return infohash, seeders, leechers, completed
 
+def exit_program():
+    print("Tracker timed out")
+    os._exit(1)
 
 if __name__ == "__main__":
     def check_infohash(value):
@@ -141,7 +150,12 @@ if __name__ == "__main__":
                         "--json",
                         help="Output in json format",
                         dest='json', action='store_true')
+    parser.add_argument("-to",
+                        "--timeout",
+                        help="Enter the timeout in seconds",
+                        type=int,
+                        default=10)
     parser.set_defaults(json=False)
 
     args, unknown = parser.parse_known_args()
-    scrape(args.infohash, args.tracker, args.port, args.json)
+    scrape(args.infohash, args.tracker, args.port, args.json, args.timeout)
