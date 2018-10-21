@@ -52,7 +52,7 @@ def connect(hostname, port):
     return sock
 
 
-def scrape(infohash, tracker_hostname, tracker_port):
+def scrape(infohash, tracker_hostname, tracker_port, json):
     """
     Takes in an infohash, tracker hostname and listening port. Returns seeders, leechers and completed
     information
@@ -61,13 +61,13 @@ def scrape(infohash, tracker_hostname, tracker_port):
     :param tracker_port: Listening port of the UDP tracker
     :return: infohash, seeders, leechers, completed
     """
-    logger.info("Using tracker udp://{0}:{1}".format(tracker_hostname, tracker_port))
+    tracker_udp = "udp://{0}:{1}".format(tracker_hostname, tracker_port)
 
     # Create the socket
 
     sock = connect(tracker_hostname, tracker_port)
     if sock is None:
-        return "Tracker udp://{0}:{1} is down".format(tracker_hostname, tracker_port)
+        return "Tracker {0} is down".format(tracker_udp)
 
     # Protocol says to keep it that way
     protocol_id = 0x41727101980
@@ -99,7 +99,12 @@ def scrape(infohash, tracker_hostname, tracker_port):
 
     index = 8
     seeders, completed, leechers = struct.unpack(">LLL", res[index:index + 12])
-    print("{3} Seeds: {0}, Leechers: {1}, Completed: {2}".format(seeders, leechers, completed, infohash))
+    if (json):
+        print("{{\"infohash\":\"{3}\",\"tracker\":\"{4}\",\"seeders\":{0},\"leechers\":{1},\"completed\":{2}}}".format(seeders, leechers, completed, infohash, tracker_udp))
+    else:
+        logger.info("Using tracker {0}".format(tracker_udp))
+        print("{3} Seeds: {0}, Leechers: {1}, Completed: {2}".format(seeders, leechers, completed, infohash))
+
     index = index + 12
 
     # close the socket, job is done.
@@ -132,5 +137,11 @@ if __name__ == "__main__":
                         help="Entered in the format :port",
                         type=int,
                         default=6969)
+    parser.add_argument("-j",
+                        "--json",
+                        help="Output in json format",
+                        dest='json', action='store_true')
+    parser.set_defaults(json=False)
+
     args, unknown = parser.parse_known_args()
-    scrape(args.infohash, args.tracker, args.port)
+    scrape(args.infohash, args.tracker, args.port, args.json)
