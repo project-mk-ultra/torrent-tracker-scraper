@@ -64,3 +64,9 @@ I'll get back to you in a couple of hours at most.
 For a detailed quick rundown of whats going on behind the scenes
 
 <https://districtofzaun.info/scraping-udp-torrent-trackers-using-python-3/>
+
+### Contributors
+
+<https://github.com/dessalines>
+
+
