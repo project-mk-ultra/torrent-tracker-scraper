@@ -6,13 +6,23 @@ A UDP torrent tracker scraper written in Python 3
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
+![You Wouldn't Download a Car](docs/imgs/car-thief.jpg)
+
 ### Installation
 
 ```bash
 pip install torrent-tracker-scraper
 ```
 
+
+![You Wouldn't Download a Car](docs/imgs/thief-downloading-python-package.jpg)
+
 ## Usage
+
+The package can be used either as a module within a script or straight up from the commandline.
+
+
+![You Wouldn't Download a Car](docs/imgs/thief-tiptoe.jpg)
 
 ### As a python module
 ```python
@@ -60,12 +70,15 @@ python3 -m torrent_tracker_scraper.scraper -i 95105D919C10E64AE4FA31067A8D37CCD3
 
 ```
 
+![Come my Lady Come come my Lady, Youre My Butterfly, Sugar, Baby](docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg)
+
 ### Testing
 
 ```bash
 python -m unittest discover tests
 ```
 
+![Thief Reviewing Unit Test Reports](docs/imgs/thief-reviewing-unit-test-reports.jpg)
 
 ### Help/Contributing
 
