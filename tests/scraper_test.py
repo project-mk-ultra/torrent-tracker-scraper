@@ -1,13 +1,17 @@
 # tests/scrape_test.py
+import os
 import unittest
 
 from torrent_tracker_scraper import scraper
+
+GOOD_INFOHASHES_PATH = os.path.join(os.path.dirname(__file__), 'good_infohashes.txt')
+BAD_INFOHASHES_PATH = os.path.join(os.path.dirname(__file__), 'bad_infohashes.txt')
 
 
 class ScrapeTest(unittest.TestCase):
 
     def test_scraper(self):
-        f = open('good_infohashes.txt', 'rb')
+        f = open(GOOD_INFOHASHES_PATH, 'rb')
 
         content = f.readlines()
 
@@ -24,7 +28,7 @@ class ScrapeTest(unittest.TestCase):
         f.close()
 
     def test_scraper_infohash_error(self):
-        f = open('bad_infohashes.txt', 'rb')
+        f = open(BAD_INFOHASHES_PATH, 'rb')
 
         content = f.readlines()
 
@@ -39,7 +43,7 @@ class ScrapeTest(unittest.TestCase):
         f.close()
 
     def test_bad_tracker(self):
-        f = open('good_infohashes.txt', 'rb')
+        f = open(GOOD_INFOHASHES_PATH, 'rb')
 
         content = f.readlines()
 
