@@ -5,14 +5,14 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="torrent-tracker-scraper",
-    version="0.0.9",
+    version="0.1.0",
     author="ziggs",
     packages=['torrent_tracker_scraper'],
     author_email="ziggs@airmail.cc",
     description="A UDP torrent tracker scraper written in Python 3",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ZigmundVonZaun/torrent-tracker-scraper",
+    url="https://github.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper",
     # packages=setuptools.find_packages(),
     classifiers=(
         "Programming Language :: Python :: 3",

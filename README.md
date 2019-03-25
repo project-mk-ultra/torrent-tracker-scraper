@@ -49,8 +49,8 @@ pip install torrent-tracker-scraper
 
 ### Help/Contributing
 
-Use the normal Github bug reporting flow i.e Create an issue here 
-<https://github.com/ZigmundVonZaun/torrent-tracker-scraper/issues>.
+Use the normal GitHub bug reporting flow i.e Create an issue here 
+<https://github.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper/issues>.
 
 Fork the code, make your changes and create a pull request.
 

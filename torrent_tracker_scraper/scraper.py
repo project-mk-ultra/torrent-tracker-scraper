@@ -49,7 +49,7 @@ def connect(hostname, port):
             sock.close()
             logger.error(e)
             logger.error(" Tracker udp://{0}:{1} is also down, check your Internet".format("tracker.coppersurfer.tk",
-                                                                                          6969))
+                                                                                           6969))
             return None
     return sock
 
@@ -105,7 +105,8 @@ def scrape(infohash, tracker_hostname, tracker_port, json, timeout):
     index = 8
     seeders, completed, leechers = struct.unpack(">LLL", res[index:index + 12])
     if (json):
-        print("{{\"infohash\":\"{3}\",\"tracker\":\"{4}\",\"seeders\":{0},\"leechers\":{1},\"completed\":{2}}}".format(seeders, leechers, completed, infohash, tracker_udp))
+        print("{{\"infohash\":\"{3}\",\"tracker\":\"{4}\",\"seeders\":{0},\"leechers\":{1},\"completed\":{2}}}".format(
+            seeders, leechers, completed, infohash, tracker_udp))
     else:
         logger.info("Using tracker {0}".format(tracker_udp))
         print("{3} Seeds: {0}, Leechers: {1}, Completed: {2}".format(seeders, leechers, completed, infohash))
@@ -118,9 +119,11 @@ def scrape(infohash, tracker_hostname, tracker_port, json, timeout):
 
     return infohash, seeders, leechers, completed
 
+
 def exit_program():
     print("Tracker timed out")
     os._exit(1)
+
 
 if __name__ == "__main__":
     def check_infohash(value):
