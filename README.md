@@ -2,6 +2,7 @@
 
 A UDP torrent tracker scraper written in Python 3 
 
+![Coverage SVG](coverage.svg)
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
