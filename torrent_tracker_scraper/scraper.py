@@ -54,7 +54,7 @@ def connect(hostname, port):
     return sock
 
 
-def scrape(infohash, tracker_hostname, tracker_port, json=False, timeout=60):
+def scrape(infohash, tracker_hostname, tracker_port, json=False, timeout=5):
     """
     Takes in an infohash, tracker hostname and listening port. Returns seeders, leechers and completed
     information
@@ -160,7 +160,7 @@ if __name__ == "__main__":
                         "--timeout",
                         help="Enter the timeout in seconds",
                         type=int,
-                        default=15)
+                        default=5)
     parser.set_defaults(json=False)
 
     args, unknown = parser.parse_known_args()

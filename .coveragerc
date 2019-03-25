@@ -3,4 +3,4 @@ branch = True
 omit =
     venv/*
     */tests/*
-source = .
+source = torrent_tracker_scraper
