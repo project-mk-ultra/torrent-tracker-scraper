@@ -61,6 +61,9 @@ python3 -m torrent_tracker_scraper.scraper -i 95105D919C10E64AE4FA31067A8D37CCD3
 
 ### Testing
 
+```bash
+python -m unittest discover tests
+```
 
 
 ### Help/Contributing
