@@ -1,13 +1,19 @@
-### Torrent Tracker Scraper
+# Torrent Tracker Scraper
 
 A UDP torrent tracker scraper written in Python 3 
 
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-### Usage
+### Installation
 
-#### As a python module
+```bash
+pip install torrent-tracker-scraper
+```
+
+## Usage
+
+### As a python module
 ```python
 from torrent_tracker_scraper import scraper
 
@@ -29,23 +35,33 @@ Using tracker udp://tracker.coppersurfer.tk:6969
 ```
 
 
-#### As a CLI program
+### Use it from the commandline
 
 ```bash
 python3 -m torrent_tracker_scraper.scraper -i 95105D919C10E64AE4FA31067A8D37CCD33FE92D -t tracker.coppersurfer.tk -p 6969
 ```
 
-Outputs 
+**Outputs** 
 ```bash
 Using tracker udp://tracker.coppersurfer.tk:6969
 95105D919C10E64AE4FA31067A8D37CCD33FE92D, Seeds: 5045, Leechers: 742, Completed: 79802
 ```
 
-### Setup
+#### Get JSON from the commandline
 
 ```bash
-pip install torrent-tracker-scraper
+python3 -m torrent_tracker_scraper.scraper -i 95105D919C10E64AE4FA31067A8D37CCD33FE92D -t tracker.coppersurfer.tk -p 6969 -j
 ```
+
+**Outputs**
+```bash
+{"infohash":"95105D919C10E64AE4FA31067A8D37CCD33FE92D","tracker":"udp://tracker.coppersurfer.tk:6969","seeders":171,"leechers":4,"completed":469}
+
+```
+
+### Testing
+
+
 
 ### Help/Contributing
 

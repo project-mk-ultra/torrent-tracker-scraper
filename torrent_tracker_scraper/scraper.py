@@ -41,7 +41,7 @@ def connect(hostname, port):
         sock.connect((hostname, port))
     except:
         # handle socket connection error
-        logger.warn("Tracker udp://{0}:{1} down falling back to udp://tracker.coppersurfer.tk".format(hostname, port))
+        logger.warning("Tracker udp://{0}:{1} down falling back to udp://tracker.coppersurfer.tk".format(hostname, port))
         try:
             sock.connect(("tracker.coppersurfer.tk", 6969))
             return sock
@@ -54,13 +54,15 @@ def connect(hostname, port):
     return sock
 
 
-def scrape(infohash, tracker_hostname, tracker_port, json, timeout):
+def scrape(infohash, tracker_hostname, tracker_port, json=False, timeout=60):
     """
     Takes in an infohash, tracker hostname and listening port. Returns seeders, leechers and completed
     information
     :param infohash: SHA-1 representation of the ```info``` key in the torrent file
     :param tracker_hostname: Hostname of the UDP tracker. The hostname without the scheme.
     :param tracker_port: Listening port of the UDP tracker
+    :param json: If output should be JSON
+    :param timeout  Scraper timeout
     :return: infohash, seeders, leechers, completed
     """
     tracker_udp = "udp://{0}:{1}".format(tracker_hostname, tracker_port)
@@ -152,12 +154,13 @@ if __name__ == "__main__":
     parser.add_argument("-j",
                         "--json",
                         help="Output in json format",
-                        dest='json', action='store_true')
+                        dest='json',
+                        action='store_true')
     parser.add_argument("-to",
                         "--timeout",
                         help="Enter the timeout in seconds",
                         type=int,
-                        default=10)
+                        default=15)
     parser.set_defaults(json=False)
 
     args, unknown = parser.parse_known_args()
