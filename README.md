@@ -97,7 +97,7 @@ I'll get back to you in a couple of hours at most.
 
 For a detailed quick rundown of whats going on behind the scenes
 
-<https://districtofzaun.info/scraping-udp-torrent-trackers-using-python-3/>
+<https://blog.takeshispalace.com/programming/python3/2018/12/22/python3-udp-scraping.html>
 
 ### Contributors
 
