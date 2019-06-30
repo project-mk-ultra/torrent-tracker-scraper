@@ -3,20 +3,16 @@
 import argparse
 import binascii
 import logging
+import os
 import socket
 import struct
 from random import randrange  # to generate random transaction_id
 from threading import Timer
-import os
-
-import pygogo as gogo
 
 # setup Logging
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-formatter = logging.Formatter(log_format)
-
-logger = gogo.Gogo('monolog', monolog=True, formatter=formatter).logger
+logging.basicConfig(format=log_format, level=logging.INFO)
 
 
 class Utils:
@@ -41,15 +37,16 @@ def connect(hostname, port):
         sock.connect((hostname, port))
     except:
         # handle socket connection error
-        logger.warning("Tracker udp://{0}:{1} down falling back to udp://tracker.coppersurfer.tk".format(hostname, port))
+        logging.warning(
+            "Tracker udp://{0}:{1} down falling back to udp://tracker.coppersurfer.tk".format(hostname, port))
         try:
             sock.connect(("tracker.coppersurfer.tk", 6969))
             return sock
         except Exception as e:
             sock.close()
-            logger.error(e)
-            logger.error(" Tracker udp://{0}:{1} is also down, check your Internet".format("tracker.coppersurfer.tk",
-                                                                                           6969))
+            logging.error(e)
+            logging.error(" Tracker udp://{0}:{1} is also down, check your Internet".format("tracker.coppersurfer.tk",
+                                                                                            6969))
             return None
     return sock
 
@@ -92,7 +89,7 @@ def scrape(infohash, tracker_hostname, tracker_port, json=False, timeout=5):
 
     packet_hashes = str()
     if not Utils.is_40_char_long(infohash):
-        logger.warning("Skipping infohash {0}".format(infohash))
+        logging.warning("Skipping infohash {0}".format(infohash))
         sock.close()
         return "Invalid infohash {0}".format(infohash)
     packet_hashes = bytearray(packet_hashes, 'utf-8') + binascii.unhexlify(infohash)
@@ -107,11 +104,12 @@ def scrape(infohash, tracker_hostname, tracker_port, json=False, timeout=5):
     index = 8
     seeders, completed, leechers = struct.unpack(">LLL", res[index:index + 12])
     if (json):
-        print("{{\"infohash\":\"{3}\",\"tracker\":\"{4}\",\"seeders\":{0},\"leechers\":{1},\"completed\":{2}}}".format(
-            seeders, leechers, completed, infohash, tracker_udp))
+        logging.info(
+            "{{\"infohash\":\"{3}\",\"tracker\":\"{4}\",\"seeders\":{0},\"leechers\":{1},\"completed\":{2}}}".format(
+                seeders, leechers, completed, infohash, tracker_udp))
     else:
-        logger.info("Using tracker {0}".format(tracker_udp))
-        print("{3} Seeds: {0}, Leechers: {1}, Completed: {2}".format(seeders, leechers, completed, infohash))
+        logging.info("Using tracker {0}".format(tracker_udp))
+        logging.info("{3} Seeds: {0}, Leechers: {1}, Completed: {2}".format(seeders, leechers, completed, infohash))
 
     index = index + 12
 

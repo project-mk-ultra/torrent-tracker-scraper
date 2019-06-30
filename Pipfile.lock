@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ef79c68de895a8fd8d2246f80e0a4f95ef38d1b7a838f6db47a571639a83f48b"
+            "sha256": "9a5edf47abe46b8a2273c964ab27ee2da5ac2a2b501fc799ffb43524df0c4ef0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -60,14 +60,6 @@
             ],
             "index": "pypi",
             "version": "==1.0.1"
-        },
-        "pygogo": {
-            "hashes": [
-                "sha256:3e121efba1c202c10df54a84db88e3579741883a47465a4fa318d226d8477f51",
-                "sha256:595ff156e9fbf0ec6a3180ae2a6f5e5dcd5fe676860810576a49422058505c69"
-            ],
-            "index": "pypi",
-            "version": "==0.12.0"
         }
     },
     "develop": {}

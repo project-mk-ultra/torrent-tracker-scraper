@@ -1,5 +1,0 @@
-pygogo
-
-# dev dependencies
-coverage
-coverage-badge
