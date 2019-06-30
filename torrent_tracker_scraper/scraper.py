@@ -1,6 +1,5 @@
 # !/usr/bin/env python
 # scrape.py
-import argparse
 import binascii
 import logging
 import os
