@@ -13,7 +13,7 @@ from torrent_tracker_scraper.utils import Utils
 
 
 class Scraper:
-    def __init__(self, hostname, port, json, timeout=15):
+    def __init__(self, hostname, port, json=False, timeout=15):
         """
         Launches a scraper bound to a particular tracker
         :param hostname: Tracker hostname e.g. coppersuffer.tk
@@ -57,14 +57,16 @@ class Scraper:
         res = self.connection.sock.recv(16)
         action, transaction_id, connection_id = struct.unpack(">LLQ", res)
 
+        results = list()
+
         # if infohashes is a string
         if isinstance(infohashes, str):
             # check if it is a single infohash
             if "," not in infohashes:
+                MyLogger.log("Parsing single string infohash")
                 if not Utils.is_40_char_long(infohashes):
                     logging.warning("Skipping infohash {0}".format(infohashes))
-                    self.connection.sock.close()
-                    return "Invalid infohash {0}".format(infohashes)
+                    return "Invalid infohash {0}, skipping".format(infohashes)
                 packet_hashes = bytearray(str(), 'utf-8')
                 packet_hashes += binascii.unhexlify(infohashes)
 
@@ -77,6 +79,7 @@ class Scraper:
 
                 index = 8
                 seeders, completed, leechers = struct.unpack(">LLL", res[index:index + 12])
+                results.append((infohashes, seeders, completed, seeders))
                 if self.json:
                     MyLogger.log(
                         "{{\"infohash\":\"{3}\",\"tracker\":\"{4}\",\"seeders\":{0},\"leechers\":{1},\"completed\":{"
@@ -90,9 +93,7 @@ class Scraper:
 
                 # close the socket, job done.
                 self.connection.close()
-                timer.cancel()
 
-                return infohashes, seeders, leechers, completed
             else:
                 # multiple infohashes separated by a comma
                 infohashes = infohashes.split(",")
@@ -108,11 +109,29 @@ class Scraper:
 
                 index = 8
                 for i in range(1, len(infohashes) + 1):
-                    MyLogger.log("Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12)), logging.INFO)
+                    MyLogger.log("Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12)), logging.DEBUG)
                     seeders, completed, leechers = struct.unpack(">LLL", res[index + (i * 12) - 12: index + (i * 12)])
-                    MyLogger.log("{} {} {}".format(seeders, completed, seeders), logging.INFO)
+                    results.append((infohashes[i - 1], seeders, completed, seeders))
+        elif isinstance(infohashes, list):
+            MyLogger.log(infohashes, logging.INFO)
+            packet_hashes = bytearray(str(), 'utf-8')
+            for i, infohash in enumerate(infohashes):
+                packet_hashes += binascii.unhexlify(infohash)
+            packet = struct.pack(">QLL", connection_id, 2, transaction_id) + packet_hashes
+            self.connection.sock.send(packet)
 
-                return
+            # Scrape response
+            res = self.connection.sock.recv(8 + (12 * len(infohashes)))
+
+            index = 8
+            for i in range(1, len(infohashes) + 1):
+                MyLogger.log("Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12)), logging.INFO)
+                seeders, completed, leechers = struct.unpack(">LLL", res[index + (i * 12) - 12: index + (i * 12)])
+                MyLogger.log("{} {} {}".format(seeders, completed, seeders), logging.INFO)
+                results.append((infohashes[i - 1], seeders, completed, seeders))
+
+        timer.cancel()
+        return results
 
     def __del__(self):
         """

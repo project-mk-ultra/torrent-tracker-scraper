@@ -3,7 +3,7 @@ import logging
 
 class MyLogger:
     log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(format=log_format, level=logging.INFO)
+    logging.basicConfig(format=log_format, level=logging.DEBUG)
 
     @staticmethod
     def log(message, level=logging.INFO):
