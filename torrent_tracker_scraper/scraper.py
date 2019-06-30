@@ -105,7 +105,7 @@ class Scraper:
 
                 index = 8
                 for i in range(1, len(infohashes) + 1):
-                    MyLogger.log("Offset: {} {}".format(index, index + (i * 12)), logging.INFO)
+                    MyLogger.log("Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12)), logging.INFO)
                     seeders, completed, leechers = struct.unpack(">LLL", res[index + (i * 12) - 12: index + (i * 12)])
                     MyLogger.log("{} {} {}".format(seeders, completed, seeders), logging.INFO)
 
