@@ -1,5 +1,4 @@
 import argparse
-import logging
 
 from torrent_tracker_scraper.scraper import Scraper
 from torrent_tracker_scraper.utils import Utils
