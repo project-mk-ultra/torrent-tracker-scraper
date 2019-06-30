@@ -6,7 +6,7 @@ A UDP torrent tracker scraper written in Python 3
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-![You Wouldn't Download a Car](docs/imgs/car-thief.jpg)
+<img src="docs/imgs/car-thief.jpg" width="400">
 
 ### Installation
 
@@ -14,15 +14,14 @@ A UDP torrent tracker scraper written in Python 3
 pip install torrent-tracker-scraper
 ```
 
-
-![You Wouldn't Download a Car](docs/imgs/thief-downloading-python-package.jpg)
+<img src="docs/imgs/thief-downloading-python-package.jpg" width="400">
 
 ## Usage
 
 The package can be used either as a module within a script or straight up from the commandline.
 
 
-![You Wouldn't Download a Car](docs/imgs/thief-tiptoe.jpg)
+<img src="docs/imgs/thief-tiptoe.jpg" width="400">
 
 ### As a python module
 ```python
@@ -70,8 +69,7 @@ python3 -m torrent_tracker_scraper.scraper -i 95105D919C10E64AE4FA31067A8D37CCD3
 
 ```
 
-![Come my Lady Come come my Lady, Youre My Butterfly, Sugar, Baby](docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg)
-*Come my lady, Come come my lady, You're my butterfly, sugar, baby*
+<img src="docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg" width="400">
 
 ### Testing
 
@@ -88,16 +86,11 @@ Use the normal GitHub bug reporting flow i.e Create an issue here
 
 Fork the code, make your changes and create a pull request.
 
-Send me an email <ziggs@airmail.cc> for any queries.
- 
-I'll get back to you in a couple of hours at most.
-
-
 ### Behind the scenes
 
 For a detailed quick rundown of whats going on behind the scenes
 
-<https://blog.takeshispalace.com/programming/python3/2018/12/22/python3-udp-scraping.html>
+<https://blog.takeshispalace.com/programming/python3/udp/2018/12/23/udp-torrent-scraper-python.html>
 
 ### Contributors
 
