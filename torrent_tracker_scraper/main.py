@@ -4,19 +4,18 @@ from torrent_tracker_scraper.scraper import Scraper
 from torrent_tracker_scraper.utils import Utils
 
 if __name__ == "__main__":
-    def check_infohash(value):
-        if not Utils.is_40_char_long(value):
-            raise argparse.ArgumentTypeError('Infohash is not valid')
-        else:
-            return value
-
+    # def check_infohash(value):
+    #     if not Utils.is_40_char_long(value):
+    #         raise argparse.ArgumentTypeError('Infohash is not valid')
+    #     else:
+    #         return value
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-i",
                         "--infohash",
                         help="A torrents infohash or a file path consisting of infohashes",
-                        type=check_infohash,
-                        default="95105D919C10E64AE4FA31067A8D37CCD33FE92D")
+                        # type=check_infohash,
+                        default="95105D919C10E64AE4FA31067A8D37CCD33FE92D,9EBADF83777C3C4C4B0C90D209C038CC6D9F0801")
     parser.add_argument("-t",
                         "--tracker",
                         help="Entered in the format :tracker",
@@ -36,7 +35,7 @@ if __name__ == "__main__":
                         "--timeout",
                         help="Enter the timeout in seconds",
                         type=int,
-                        default=5)
+                        default=15)
     parser.set_defaults(json=False)
 
     args, unknown = parser.parse_known_args()

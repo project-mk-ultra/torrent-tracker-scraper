@@ -6,12 +6,12 @@ class MyLogger:
     logging.basicConfig(format=log_format, level=logging.INFO)
 
     @staticmethod
-    def log(message, level):
+    def log(message, level=logging.INFO):
         if level == logging.INFO:
             logging.info(message)
         elif level == logging.WARNING:
             logging.warning(message)
         elif level == logging.ERROR:
             logging.error(message)
-        else:
+        elif level == logging.DEBUG:
             logging.debug(message)
