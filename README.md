@@ -77,7 +77,7 @@ python3 -m torrent_tracker_scraper.scraper -i 95105D919C10E64AE4FA31067A8D37CCD3
 python -m unittest discover tests
 ```
 
-![Thief Reviewing Unit Test Reports](docs/imgs/thief-reviewing-unit-test-reports.jpg)
+<img src="docs/imgs/thief-reviewing-unit-test-reports.jpg" width="400">
 
 ### Help/Contributing
 
