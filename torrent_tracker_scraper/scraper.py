@@ -1,6 +1,7 @@
 # !/usr/bin/env python
 # scrape.py
 import binascii
+import json
 import logging
 import os
 import random
@@ -17,7 +18,7 @@ class Scraper:
         """
         Launches a scraper bound to a particular tracker
         :param hostname: Tracker hostname e.g. coppersuffer.tk
-        :param port: 6969
+        :param port: 6969, self-explanatory
         :param json: dictates if a json object should be returned as the output
         :param timeout: Timeout value in seconds, program exits if no response received within this period
         """
@@ -63,7 +64,7 @@ class Scraper:
         if isinstance(infohashes, str):
             # check if it is a single infohash
             if "," not in infohashes:
-                MyLogger.log("Parsing single string infohash")
+                MyLogger.log("Parsing single string infohash", logging.DEBUG)
                 if not Utils.is_40_char_long(infohashes):
                     logging.warning("Skipping infohash {0}".format(infohashes))
                     return "Invalid infohash {0}, skipping".format(infohashes)
@@ -80,21 +81,11 @@ class Scraper:
                 index = 8
                 seeders, completed, leechers = struct.unpack(">LLL", res[index:index + 12])
                 results.append((infohashes, seeders, completed, seeders))
-                if self.json:
-                    MyLogger.log(
-                        "{{\"infohash\":\"{3}\",\"tracker\":\"{4}\",\"seeders\":{0},\"leechers\":{1},\"completed\":{"
-                        "2}}}".format(
-                            seeders, leechers, completed, infohashes, tracker_udp_url), logging.INFO)
-                else:
-                    MyLogger.log("Using tracker {0}".format(tracker_udp_url), logging.INFO)
-                    MyLogger.log("{3} Seeds: {0}, Leechers: {1}, Completed: {2}".format(seeders, leechers, completed,
-                                                                                        infohashes),
-                                 logging.INFO)
 
             else:
                 # multiple infohashes separated by a comma
+                MyLogger.log("Parsing multiple string infohashes", logging.DEBUG)
                 infohashes = infohashes.split(",")
-                MyLogger.log(infohashes, logging.INFO)
                 packet_hashes = bytearray(str(), 'utf-8')
                 for i, infohash in enumerate(infohashes):
                     packet_hashes += binascii.unhexlify(infohash)
@@ -110,7 +101,7 @@ class Scraper:
                     seeders, completed, leechers = struct.unpack(">LLL", res[index + (i * 12) - 12: index + (i * 12)])
                     results.append((infohashes[i - 1], seeders, completed, seeders))
         elif isinstance(infohashes, list):
-            MyLogger.log(infohashes, logging.INFO)
+            MyLogger.log("Parsing list of infohashes", logging.DEBUG)
             packet_hashes = bytearray(str(), 'utf-8')
             for i, infohash in enumerate(infohashes):
                 packet_hashes += binascii.unhexlify(infohash)
@@ -127,6 +118,8 @@ class Scraper:
                 results.append((infohashes[i - 1], seeders, completed, seeders))
 
         timer.cancel()
+        if self.json:
+            return json.dumps(results)
         return results
 
     def __del__(self):
