@@ -4,29 +4,17 @@ import argparse
 import binascii
 import logging
 import os
+import random
 import socket
 import struct
-from random import randrange  # to generate random transaction_id
 from threading import Timer
+
+from torrent_tracker_scraper.utils import Utils
 
 # setup Logging
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=log_format, level=logging.INFO)
-
-
-class Utils:
-    @staticmethod
-    def is_40_char_long(s):
-        """
-        Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
-        :param s:
-        :return: True if infohash is valid, False otherwise
-        """
-        if len(s) == 40:
-            return True
-        else:
-            return False
 
 
 def connect(hostname, port):
@@ -77,7 +65,7 @@ def scrape(infohash, tracker_hostname, tracker_port, json=False, timeout=5):
     protocol_id = 0x41727101980
 
     # We should get the same in response
-    transaction_id = randrange(1, 65535)
+    transaction_id = random.randrange(1, 65535)
 
     # Connection request
     packet = struct.pack(">QLL", protocol_id, 0, transaction_id)
