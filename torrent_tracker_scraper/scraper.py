@@ -9,34 +9,13 @@ import socket
 import struct
 from threading import Timer
 
+from torrent_tracker_scraper.connection import Connection
 from torrent_tracker_scraper.utils import Utils
 
 # setup Logging
 
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=log_format, level=logging.INFO)
-
-
-def connect(hostname, port):
-    # create socket
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # connect socket
-        sock.connect((hostname, port))
-    except:
-        # handle socket connection error
-        logging.warning(
-            "Tracker udp://{0}:{1} down falling back to udp://tracker.coppersurfer.tk".format(hostname, port))
-        try:
-            sock.connect(("tracker.coppersurfer.tk", 6969))
-            return sock
-        except Exception as e:
-            sock.close()
-            logging.error(e)
-            logging.error(" Tracker udp://{0}:{1} is also down, check your Internet".format("tracker.coppersurfer.tk",
-                                                                                            6969))
-            return None
-    return sock
 
 
 def scrape(infohash, tracker_hostname, tracker_port, json=False, timeout=5):
@@ -56,8 +35,10 @@ def scrape(infohash, tracker_hostname, tracker_port, json=False, timeout=5):
     timer = Timer(timeout, exit_program)
     timer.start()
 
-    # Create the socket
-    sock = connect(tracker_hostname, tracker_port)
+    # create a connection
+    connection = Connection(tracker_hostname, tracker_port)
+    # get the socket from the connection
+    sock = connection.sock
     if sock is None:
         return "Tracker {0} is down".format(tracker_udp)
 
