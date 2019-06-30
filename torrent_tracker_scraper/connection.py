@@ -31,3 +31,10 @@ class Connection:
                                                                                       6969), logging.ERROR)
                 return None
         return sock
+
+    def close(self):
+        """
+        Closes a socket connection gracefully
+        :return: None
+        """
+        self.sock.close()
