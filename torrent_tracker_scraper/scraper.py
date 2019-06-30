@@ -104,13 +104,9 @@ class Scraper:
                 res = self.connection.sock.recv(8 + (12 * len(infohashes)))
 
                 index = 8
-                for i in range(1, len(infohashes)+1):
-                    if i == 1:
-                        print(index, index + (i * 12))
-                        seeders, completed, leechers = struct.unpack(">LLL", res[index: index + (i * 12)])
-                    else:
-                        print(index + 12, index + (i * 12))
-                        seeders, completed, leechers = struct.unpack(">LLL", res[index + 12: index + (i * 12)])
+                for i in range(1, len(infohashes) + 1):
+                    MyLogger.log("Offset: {} {}".format(index, index + (i * 12)), logging.INFO)
+                    seeders, completed, leechers = struct.unpack(">LLL", res[index + (i * 12) - 12: index + (i * 12)])
                     MyLogger.log("{} {} {}".format(seeders, completed, seeders), logging.INFO)
 
                 return

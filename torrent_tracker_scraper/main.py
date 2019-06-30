@@ -15,7 +15,7 @@ if __name__ == "__main__":
                         "--infohash",
                         help="A torrents infohash or a file path consisting of infohashes",
                         # type=check_infohash,
-                        default="95105D919C10E64AE4FA31067A8D37CCD33FE92D,9EBADF83777C3C4C4B0C90D209C038CC6D9F0801")
+                        default="95105D919C10E64AE4FA31067A8D37CCD33FE92D,9EBADF83777C3C4C4B0C90D209C038CC6D9F0801,95105D919C10E64AE4FA31067A8D37CCD33FE92D")
     parser.add_argument("-t",
                         "--tracker",
                         help="Entered in the format :tracker",
