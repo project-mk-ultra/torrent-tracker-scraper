@@ -1,15 +1,8 @@
 import argparse
 
 from torrent_tracker_scraper.scraper import Scraper
-from torrent_tracker_scraper.utils import Utils
 
 if __name__ == "__main__":
-    # def check_infohash(value):
-    #     if not Utils.is_40_char_long(value):
-    #         raise argparse.ArgumentTypeError('Infohash is not valid')
-    #     else:
-    #         return value
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-i",
                         "--infohash",

@@ -14,6 +14,13 @@ from torrent_tracker_scraper.utils import Utils
 
 class Scraper:
     def __init__(self, hostname, port, json, timeout=15):
+        """
+        Launches a scraper bound to a particular tracker
+        :param hostname: Tracker hostname e.g. coppersuffer.tk
+        :param port: 6969
+        :param json: dictates if a json object should be returned as the output
+        :param timeout: Timeout value in seconds, program exits if no response received within this period
+        """
         self.json = json
         self.timeout = timeout
         self.connection = Connection(hostname, port)
@@ -23,11 +30,7 @@ class Scraper:
         Takes in an infohash, tracker hostname and listening port. Returns seeders, leechers and completed
         information
         :param infohashes: SHA-1 representation of the ```info``` key in the torrent file
-        :param hostname: Hostname of the UDP tracker. The hostname without the scheme.
-        :param port: Listening port of the UDP tracker
-        :param json: If output should be JSON
-        :param timeout  Scraper timeout
-        :return: infohash, seeders, leechers, completed
+        :return: [(infohash, seeders, leechers, completed),...]
         """
 
         tracker_udp_url = "udp://{0}:{1}".format(self.connection.hostname, self.connection.port)
@@ -110,6 +113,13 @@ class Scraper:
                     MyLogger.log("{} {} {}".format(seeders, completed, seeders), logging.INFO)
 
                 return
+
+    def __del__(self):
+        """
+        Close connection if the scraper object is being destroyed
+        :return: None
+        """
+        self.connection.close()
 
 
 def exit_program():
