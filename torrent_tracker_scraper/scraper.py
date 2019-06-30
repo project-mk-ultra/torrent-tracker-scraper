@@ -85,8 +85,6 @@ class Scraper:
                                                                                         infohashes),
                                  logging.INFO)
 
-                index = index + 12
-
                 # close the socket, job done.
                 self.connection.close()
                 timer.cancel()
@@ -107,8 +105,15 @@ class Scraper:
 
                 index = 8
                 for i in range(1, len(infohashes)+1):
-                    seeders, completed, leechers = struct.unpack(">LLL", res[index: index + (i * 12)])
+                    if i == 1:
+                        print(index, index + (i * 12))
+                        seeders, completed, leechers = struct.unpack(">LLL", res[index: index + (i * 12)])
+                    else:
+                        print(index + 12, index + (i * 12))
+                        seeders, completed, leechers = struct.unpack(">LLL", res[index + 12: index + (i * 12)])
                     MyLogger.log("{} {} {}".format(seeders, completed, seeders), logging.INFO)
+
+                return
 
 
 def exit_program():
