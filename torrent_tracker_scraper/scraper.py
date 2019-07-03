@@ -34,7 +34,7 @@ class Scraper:
         :return: [(infohash, seeders, leechers, completed),...]
         """
 
-        tracker_udp_url = "udp://{0}:{1}".format(self.connection.hostname, self.connection.port)
+        tracker_url = "udp://{0}:{1}".format(self.connection.hostname, self.connection.port)
 
         # Start a timer
         timer = Timer(self.timeout, exit_program)
@@ -42,7 +42,7 @@ class Scraper:
 
         # quit scraping if there is no connection
         if self.connection.sock is None:
-            return "Tracker {0} is down".format(tracker_udp_url)
+            return "Tracker {0} is down".format(tracker_url)
 
         # Protocol says to keep it that way
         protocol_id = 0x41727101980
@@ -54,7 +54,7 @@ class Scraper:
         packet = struct.pack(">QLL", protocol_id, 0, transaction_id)
         self.connection.sock.send(packet)
 
-        # Connect Request response
+        # Receive a Connect Request response
         res = self.connection.sock.recv(16)
         action, transaction_id, connection_id = struct.unpack(">LLQ", res)
 
@@ -65,6 +65,7 @@ class Scraper:
             # check if it is a single infohash
             if "," not in infohashes:
                 MyLogger.log("Parsing single string infohash", logging.DEBUG)
+                # Validate if string is actually an infohash
                 if not Utils.is_40_char_long(infohashes):
                     logging.warning("Skipping infohash {0}".format(infohashes))
                     return "Invalid infohash {0}, skipping".format(infohashes)
@@ -80,7 +81,8 @@ class Scraper:
 
                 index = 8
                 seeders, completed, leechers = struct.unpack(">LLL", res[index:index + 12])
-                results.append((infohashes, seeders, completed, seeders))
+                results.append(
+                    {"infohash": infohashes, "seeders": seeders, "completed": completed, "leechers": leechers})
 
             else:
                 # multiple infohashes separated by a comma
@@ -99,7 +101,10 @@ class Scraper:
                 for i in range(1, len(infohashes) + 1):
                     MyLogger.log("Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12)), logging.DEBUG)
                     seeders, completed, leechers = struct.unpack(">LLL", res[index + (i * 12) - 12: index + (i * 12)])
-                    results.append((infohashes[i - 1], seeders, completed, seeders))
+                    results.append({"infohash": infohashes[i - 1],
+                                    "seeders": seeders,
+                                    "completed": completed,
+                                    "leechers": leechers})
         elif isinstance(infohashes, list):
             MyLogger.log("Parsing list of infohashes", logging.DEBUG)
             packet_hashes = bytearray(str(), 'utf-8')
@@ -115,11 +120,13 @@ class Scraper:
             for i in range(1, len(infohashes) + 1):
                 MyLogger.log("Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12)), logging.DEBUG)
                 seeders, completed, leechers = struct.unpack(">LLL", res[index + (i * 12) - 12: index + (i * 12)])
-                results.append((infohashes[i - 1], seeders, completed, seeders))
+                results.append({"infohash": infohashes[i - 1],
+                                "seeders": seeders,
+                                "completed": completed,
+                                "leechers": leechers})
 
         timer.cancel()
-        if self.json:
-            return json.dumps(results)
+        results = {"tracker": f'{self.connection.hostname}:{self.connection.port}', "results": results}
         return results
 
     def __del__(self):
@@ -128,6 +135,9 @@ class Scraper:
         :return: None
         """
         self.connection.close()
+
+    def __repr__(self):
+        return f'{self.connection.hostname}:{self.connection.port}'
 
 
 def exit_program():

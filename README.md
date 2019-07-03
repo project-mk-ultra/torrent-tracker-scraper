@@ -27,47 +27,30 @@ The package can be used either as a module within a script or straight up from t
 ```python
 from torrent_tracker_scraper import scraper
 
-torrent_infohash, seeders, leechers, complete = scraper.scrape(
-                "95105D919C10E64AE4FA31067A8D37CCD33FE92D",
-                "tracker.coppersurfer.tk",
-                6969
-            )
-            
-print(torrent_infohash)
+scraper = scraper.Scraper("tracker.coppersuffer.tk", 6969, json=True)
+
+# pass in a single infohash
+results = scraper.scrape("95105D919C10E64AE4FA31067A8D37CCD33FE92D")
+print(results)
+
+{'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}]}
+
+# pass in multiple infohashes separated by commas
+results = scraper.scrape("95105D919C10E64AE4FA31067A8D37CCD33FE92D,913EF55D5DD1A9376B738922E5104B3A1BE3754A")
+print(results)
+
+{'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}, {'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}]}
+
+# pass in a list of infohashes
+results = scraper.scrape(["913EF55D5DD1A9376B738922E5104B3A1BE3754A", "95105D919C10E64AE4FA31067A8D37CCD33FE92D"])
+print(results)
+
+{'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}, {'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}]}
 ```
 
 Outputs 
 
-```bash
-Using tracker udp://tracker.coppersurfer.tk:6969
-(95105D919C10E64AE4FA31067A8D37CCD33FE92D, 5045, 742, 79802) 
-# it returns a tuple with (infohash, seeders, leechers, completed)
-```
 
-
-### Use it from the commandline
-
-```bash
-python3 -m torrent_tracker_scraper.scraper -i 95105D919C10E64AE4FA31067A8D37CCD33FE92D -t tracker.coppersurfer.tk -p 6969
-```
-
-**Outputs** 
-```bash
-Using tracker udp://tracker.coppersurfer.tk:6969
-95105D919C10E64AE4FA31067A8D37CCD33FE92D, Seeds: 5045, Leechers: 742, Completed: 79802
-```
-
-#### Get JSON from the commandline
-
-```bash
-python3 -m torrent_tracker_scraper.scraper -i 95105D919C10E64AE4FA31067A8D37CCD33FE92D -t tracker.coppersurfer.tk -p 6969 -j
-```
-
-**Outputs**
-```bash
-{"infohash":"95105D919C10E64AE4FA31067A8D37CCD33FE92D","tracker":"udp://tracker.coppersurfer.tk:6969","seeders":171,"leechers":4,"completed":469}
-
-```
 
 <img src="docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg" width="400">
 
