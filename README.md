@@ -20,9 +20,6 @@ pip install torrent-tracker-scraper
 
 The package can be used either as a module within a script or straight up from the commandline.
 
-
-<img src="docs/imgs/thief-tiptoe.jpg" width="400">
-
 ### As a python module
 ```python
 from torrent_tracker_scraper import scraper
@@ -70,6 +67,8 @@ Fork the code, make your changes and create a pull request.
 For a detailed quick rundown of whats going on behind the scenes
 
 <https://blog.takeshispalace.com/programming/python3/udp/2018/12/23/udp-torrent-scraper-python.html>
+
+<img src="docs/imgs/thief-tiptoe.jpg" width="400">
 
 ### Contributors
 
