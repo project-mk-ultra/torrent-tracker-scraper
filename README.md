@@ -48,10 +48,6 @@ print(results)
 {'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}, {'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}]}
 ```
 
-Outputs 
-
-
-
 <img src="docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg" width="400">
 
 ### Testing

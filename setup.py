@@ -5,8 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="torrent-tracker-scraper",
-    version="0.1.0",
-    author="ziggs",
+    version="1.1.0",
+    author="azerty",
     packages=['torrent_tracker_scraper'],
     author_email="ziggs@airmail.cc",
     description="A UDP torrent tracker scraper written in Python 3",
@@ -20,6 +20,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ),
     install_requires=[
-        'pygogo',
+
     ],
 )
