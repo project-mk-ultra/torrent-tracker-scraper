@@ -21,29 +21,38 @@ pip install torrent-tracker-scraper
 The package can be used either as a module within a script or straight up from the commandline.
 
 ### As a python module
+
+pass in a single infohash
+
 ```python
 from torrent_tracker_scraper import scraper
 
 scraper = scraper.Scraper("tracker.coppersuffer.tk", 6969, json=True)
 
-# pass in a single infohash
 results = scraper.scrape("95105D919C10E64AE4FA31067A8D37CCD33FE92D")
 print(results)
 
 {'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}]}
+```
 
-# pass in multiple infohashes separated by commas
+pass in multiple infohashes separated by commas
+
+```python
 results = scraper.scrape("95105D919C10E64AE4FA31067A8D37CCD33FE92D,913EF55D5DD1A9376B738922E5104B3A1BE3754A")
 print(results)
 
 {'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}, {'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}]}
+```
+pass in a list of infohashes
 
-# pass in a list of infohashes
+```python
 results = scraper.scrape(["913EF55D5DD1A9376B738922E5104B3A1BE3754A", "95105D919C10E64AE4FA31067A8D37CCD33FE92D"])
 print(results)
 
 {'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}, {'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}]}
 ```
+
+Get your scrap information
 
 <img src="docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg" width="400">
 
