@@ -45,4 +45,4 @@ def test_scrape_with_good_infohashes(good_infohashes):
 def test_scrape_with_bad_infohashes(bad_infohashes):
     _scraper = Scraper("tracker.coppersuffer.tk", 6969, json=True)
     results = _scraper.scrape(bad_infohashes)
-    assert len(results.get('results')) == 0
+    assert results.get('results')[1].get('error') is not None
