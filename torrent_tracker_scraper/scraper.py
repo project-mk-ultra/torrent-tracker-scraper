@@ -109,7 +109,11 @@ class Scraper:
             MyLogger.log("Parsing list of infohashes", logging.DEBUG)
             packet_hashes = bytearray(str(), 'utf-8')
             for i, infohash in enumerate(infohashes):
-                packet_hashes += binascii.unhexlify(infohash)
+                try:
+                    packet_hashes += binascii.unhexlify(infohash)
+                except:
+                    results = {"tracker": f'{self.connection.hostname}:{self.connection.port}', "results": results}
+                    return results
             packet = struct.pack(">QLL", connection_id, 2, transaction_id) + packet_hashes
             self.connection.sock.send(packet)
 
