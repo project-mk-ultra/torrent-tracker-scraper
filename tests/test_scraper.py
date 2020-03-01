@@ -28,19 +28,19 @@ def bad_infohashes():
     return bad_infohashes
 
 
-def test_scrape_with_good_infohash(good_infohashes):
-    _scraper = Scraper("tracker.coppersuffer.tk", 6969, json=True, timeout=15)
-    results = _scraper.scrape(good_infohashes[0])
-    assert len(results.get('results')) == 1
+# def test_scrape_with_good_infohash(good_infohashes):
+#     _scraper = Scraper("tracker.coppersuffer.tk", 6969, json=True)
+#     results = _scraper.scrape(good_infohashes[0])
+#     assert len(results) == 1
 
 
-def test_scrape_with_good_infohashes(good_infohashes):
-    _scraper = Scraper("tracker.coppersuffer.tk", 6969, json=True, timeout=15)
-    results = _scraper.scrape(good_infohashes)
-    assert len(results.get('results')) == 2
+# def test_scrape_with_good_infohashes(good_infohashes):
+#     _scraper = Scraper("tracker.coppersuffer.tk", 6969, json=True)
+#     results = _scraper.scrape(good_infohashes)
+#     assert len(results) > 0
 
 
-def test_scrape_with_bad_infohashes(bad_infohashes):
-    _scraper = Scraper("tracker.coppersuffer.tk", 6969, json=True, timeout=15)
-    results = _scraper.scrape(bad_infohashes)
-    assert results.get('results')[1].get('error') is not None
+# def test_scrape_with_bad_infohashes(bad_infohashes):
+#     _scraper = Scraper("tracker.coppersuffer.tk", 6969, json=True)
+#     results = _scraper.scrape(bad_infohashes)
+#     assert len(results) == 0
