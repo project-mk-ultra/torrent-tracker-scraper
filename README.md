@@ -52,6 +52,14 @@ print(results)
 {'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}, {'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}]}
 ```
 
+## From the commandline
+
+```
+python scraper.py -i 45b3d693cff285975f622acaeb75c5626acaff6f
+
+[{'infohash': '45b3d693cff285975f622acaeb75c5626acaff6f', 'seeders': 1, 'completed': 0, 'leechers': 0}]
+```
+
 Get your scrap information
 
 <img src="docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg" width="400">
