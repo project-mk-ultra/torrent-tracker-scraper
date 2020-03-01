@@ -54,10 +54,15 @@ print(results)
 
 ## From the commandline
 
-```
+``` 
 python scraper.py -i 45b3d693cff285975f622acaeb75c5626acaff6f
 
 [{'infohash': '45b3d693cff285975f622acaeb75c5626acaff6f', 'seeders': 1, 'completed': 0, 'leechers': 0}]
+
+
+python torrent_tracker_scraper/scraper.py -i 88334ec1d90afe94a22c6de5756268599f5f8ea2,5b6a484a018beed4d01f2f57e6d029a4190a9d04
+
+[{'infohash': '88334ec1d90afe94a22c6de5756268599f5f8ea2', 'seeders': 3, 'completed': 6, 'leechers': 0}, {'infohash': '5b6a484a018beed4d01f2f57e6d029a4190a9d04', 'seeders': 2, 'completed': 12, 'leechers': 0}]
 ```
 
 Get your scrap information
