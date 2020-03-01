@@ -55,7 +55,7 @@ print(results)
 ## From the commandline
 
 ``` 
-python scraper.py -i 45b3d693cff285975f622acaeb75c5626acaff6f
+python torrent_tracker_scraper/scraper.py -i 45b3d693cff285975f622acaeb75c5626acaff6f
 
 [{'infohash': '45b3d693cff285975f622acaeb75c5626acaff6f', 'seeders': 1, 'completed': 0, 'leechers': 0}]
 
