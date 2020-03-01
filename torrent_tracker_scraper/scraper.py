@@ -75,10 +75,9 @@ class Scraper:
                     return [infohashes]
             if "," in infohashes:
                 infohashes = infohashes.split(',')
-                return list(filter(lambda infohash: self.is_40_char_long(infohashes) is False, infohashes))
+                return list(filter(lambda infohash: self.is_40_char_long(infohash) is True, infohashes))
         if isinstance(infohashes, list):
-            infohashes = infohashes.split(',')
-            return list(filter(lambda infohash: self.is_40_char_long(infohashes) is False, infohashes))
+            return list(filter(lambda infohash: self.is_40_char_long(infohash) is True, infohashes))
         return None
 
     def scrape(self, infohashes):
