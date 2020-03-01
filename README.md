@@ -59,7 +59,9 @@ Get your scrap information
 ### Testing
 
 ```bash
-python -m unittest discover tests
+pipenv install --dev
+pipenv shell
+python -m pytest
 ```
 
 <img src="docs/imgs/thief-reviewing-unit-test-reports.jpg" width="400">
