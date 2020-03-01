@@ -17,19 +17,21 @@ logger = logging.getLogger(__name__)
 
 
 class Connection:
-    def __init__(self, hostname, port):
+    def __init__(self, hostname, port, timeout):
         self.hostname = hostname
         self.port = port
-        self.sock = self.connect(self.hostname, self.port)
+        self.sock = self.connect(
+            self.hostname, self.port, timeout)
 
-    def connect(self, hostname, port):
+    def connect(self, hostname, port, timeout):
         # create socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(timeout)
         try:
             # connect socket
             sock.connect((self.hostname, self.port))
             logger.debug(
-                f'Successfully connected to {self.hostname} {self.port}')
+                f'Successfully connected to {self.hostname} {self.port}. Set timeout to {timeout} secs.')
         except Exception as e:
             # handle socket connection error
             logger.error(
@@ -66,7 +68,7 @@ class Scraper:
         """
         self.json = json
         self.timeout = kwargs.get('timeout', 3)
-        self.connection = Connection(hostname, port)
+        self.connection = Connection(hostname, port, timeout=self.timeout)
 
     def parse_infohashes(self, infohashes):
         if isinstance(infohashes, str):
@@ -92,7 +94,7 @@ class Scraper:
 
         if infohashes is None or len(infohashes) == 0:
             logger.info("Nothing to do. No infohashes passed the checks")
-            return
+            return []
 
         logger.debug(f'Scraping infohashes: {infohashes}')
 
@@ -141,7 +143,11 @@ class Scraper:
         self.connection.sock.send(packet)
 
         # Scrape response
-        res = self.connection.sock.recv(8 + (12 * len(infohashes)))
+        try:
+            res = self.connection.sock.recv(8 + (12 * len(infohashes)))
+        except socket.timeout as e:
+            logger.debug(f'socket.timeout {e}')
+            return ['socket.timeout error']
 
         index = 8
         for i in range(1, len(_good_infohashes) + 1):
@@ -176,11 +182,6 @@ class Scraper:
 
     def __repr__(self):
         return f'{self.connection.hostname}:{self.connection.port}'
-
-
-def exit_program():
-    logger.error("Tracker timed out")
-    os._exit(1)
 
 
 if __name__ == "__main__":
