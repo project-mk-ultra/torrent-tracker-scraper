@@ -116,7 +116,7 @@ class Scraper:
 
         # Receive a Connect Request response
         res = self.connection.sock.recv(16)
-        action, transaction_id, connection_id = struct.unpack(">LLQ", res)
+        _, transaction_id, connection_id = struct.unpack(">LLQ", res)
 
         results = list()
 
