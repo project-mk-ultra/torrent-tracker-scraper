@@ -5,6 +5,7 @@ A UDP torrent tracker scraper written in Python 3
 ![Coverage SVG](docs/imgs/coverage.svg)
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+[![Build Status](https://travis-ci.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper.svg?branch=master)](https://travis-ci.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper)
 
 <img src="docs/imgs/car-thief.jpg" width="400">
 
