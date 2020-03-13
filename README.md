@@ -5,6 +5,7 @@ A UDP torrent tracker scraper written in Python 3
 ![Coverage SVG](docs/imgs/coverage.svg)
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+[![Build Status](https://travis-ci.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper.svg?branch=master)](https://travis-ci.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper)
 
 <img src="docs/imgs/car-thief.jpg" width="400">
 
@@ -52,6 +53,19 @@ print(results)
 {'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}, {'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}]}
 ```
 
+## From the commandline
+
+``` 
+python torrent_tracker_scraper/scraper.py -i 45b3d693cff285975f622acaeb75c5626acaff6f
+
+[{'infohash': '45b3d693cff285975f622acaeb75c5626acaff6f', 'seeders': 1, 'completed': 0, 'leechers': 0}]
+
+
+python torrent_tracker_scraper/scraper.py -i 88334ec1d90afe94a22c6de5756268599f5f8ea2,5b6a484a018beed4d01f2f57e6d029a4190a9d04
+
+[{'infohash': '88334ec1d90afe94a22c6de5756268599f5f8ea2', 'seeders': 3, 'completed': 6, 'leechers': 0}, {'infohash': '5b6a484a018beed4d01f2f57e6d029a4190a9d04', 'seeders': 2, 'completed': 12, 'leechers': 0}]
+```
+
 Get your scrap information
 
 <img src="docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg" width="400">
@@ -59,7 +73,9 @@ Get your scrap information
 ### Testing
 
 ```bash
-python -m unittest discover tests
+pipenv install --dev
+pipenv shell
+python -m pytest
 ```
 
 <img src="docs/imgs/thief-reviewing-unit-test-reports.jpg" width="400">
