@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="torrent-tracker-scraper",
-    version="1.1.3",
+    version="2.0.0",
     author="azerty",
     packages=['torrent_tracker_scraper'],
-    author_email="ziggs@airmail.cc",
+    author_email="kenokech94@gmail.com",
     description="A UDP torrent tracker scraper written in Python 3",
     long_description=long_description,
     long_description_content_type="text/markdown",
