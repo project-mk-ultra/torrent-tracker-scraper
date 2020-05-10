@@ -20,7 +20,8 @@ pipeline {
         }
          stage('Test') { 
             steps {
-                sh 'python3 -m pytest' 
+                sh('ls -la $HOME/.local/bin')
+                sh 'python -m pytest' 
             }
         }
     }
