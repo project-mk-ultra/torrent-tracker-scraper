@@ -12,7 +12,7 @@ pipeline {
             steps {
                 withEnv(["HOME=${env.WORKSPACE}"]) {
                     sh('pip install --user pipenv')
-                    sh '$HOME/.local/bin/pipenv lock --requirements > requirements.txt' 
+                    sh '$HOME/.local/bin/pipenv lock --dev --requirements > requirements.txt' 
                     sh 'pip install --user -r requirements.txt'
                 }
             }
