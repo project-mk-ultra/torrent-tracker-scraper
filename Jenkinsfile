@@ -11,16 +11,15 @@ pipeline {
         stage('Install') { 
             steps {
                 withEnv(["HOME=${env.WORKSPACE}"]) {
-                    sh('export PATH="$HOME/.local/bin:$PATH"')
                     sh('pip install --user pipenv')
-                    sh 'pipenv lock --dev --requirements > requirements.txt' 
+                    sh '$HOME/.local/bin/pipenv lock --dev --requirements > requirements.txt' 
                     sh 'pip install --user -r requirements.txt'
                 }
             }
         }
          stage('Test') { 
             steps {
-                sh 'pytest' 
+                sh '$HOME/.local/bin/pytest' 
             }
         }
     }
