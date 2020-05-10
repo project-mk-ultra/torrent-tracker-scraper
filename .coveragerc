@@ -1,6 +1,0 @@
-[run]
-branch = True
-omit =
-    venv/*
-    */tests/*
-source = torrent_tracker_scraper

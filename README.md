@@ -1,11 +1,9 @@
 # Torrent Tracker Scraper
 
-A UDP torrent tracker scraper written in Python 3 
+A UDP torrent tracker scraper written in Python 3
 
-![Coverage SVG](docs/imgs/coverage.svg)
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-[![Build Status](https://travis-ci.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper.svg?branch=master)](https://travis-ci.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper)
 
 <img src="docs/imgs/car-thief.jpg" width="400">
 
@@ -44,6 +42,7 @@ print(results)
 
 {'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}, {'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}]}
 ```
+
 pass in a list of infohashes
 
 ```python
@@ -55,7 +54,7 @@ print(results)
 
 ## From the commandline
 
-``` 
+```
 python torrent_tracker_scraper/scraper.py -i 45b3d693cff285975f622acaeb75c5626acaff6f
 
 [{'infohash': '45b3d693cff285975f622acaeb75c5626acaff6f', 'seeders': 1, 'completed': 0, 'leechers': 0}]
@@ -82,7 +81,7 @@ python -m pytest
 
 ### Help/Contributing
 
-Use the normal GitHub bug reporting flow i.e Create an issue here 
+Use the normal GitHub bug reporting flow i.e Create an issue here
 <https://github.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper/issues>.
 
 Fork the code, make your changes and create a pull request.
@@ -98,5 +97,3 @@ For a detailed quick rundown of whats going on behind the scenes
 ### Contributors
 
 <https://github.com/dessalines>
-
-
