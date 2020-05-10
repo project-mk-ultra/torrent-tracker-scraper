@@ -10,9 +10,11 @@ pipeline {
     stages {
         stage('Install') { 
             steps {
-                sh('pip install --user pipenv')
-                sh 'pipenv lock --requirements > requirements.txt' 
-                sh 'pip install --user -r requirements.txt'
+                withEnv(["HOME=${env.WORKSPACE}"]) {
+                    sh('pip install --user pipenv')
+                    sh 'pipenv lock --requirements > requirements.txt' 
+                    sh 'pip install --user -r requirements.txt'
+                }
             }
         }
          stage('Test') { 
