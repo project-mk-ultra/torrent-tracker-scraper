@@ -20,8 +20,9 @@ pipeline {
         }
          stage('Test') { 
             steps {
-                sh('ls -la $HOME/.local/bin')
-                sh 'python -m pytest' 
+                withEnv(["HOME=${env.WORKSPACE}"]) {
+                    sh 'python -m pytest' 
+                }
             }
         }
     }
