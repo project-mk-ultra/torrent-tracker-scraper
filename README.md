@@ -8,10 +8,11 @@ A UDP torrent tracker scraper written in Python 3
 
 <img src="docs/imgs/car-thief.jpg" width="400">
 
-### Installation
+## Installation
 
 ```bash
-pip install torrent-tracker-scraper
+pipenv install torrent-tracker-scraper
+pipenv shell
 ```
 
 <img src="docs/imgs/thief-downloading-python-package.jpg" width="400">
@@ -20,9 +21,7 @@ pip install torrent-tracker-scraper
 
 The package can be used either as a module within a script or straight up from the commandline.
 
-### As a python module
-
-pass in a single infohash
+Pass in a single infohash
 
 ```python
 from torrent_tracker_scraper import scraper
@@ -53,20 +52,7 @@ print(results)
 {'tracker': 'tracker.coppersuffer.tk', 'results': [{'infohash': '913EF55D5DD1A9376B738922E5104B3A1BE3754A', 'seeders': 334, 'completed': 989, 'leechers': 250}, {'infohash': '95105D919C10E64AE4FA31067A8D37CCD33FE92D', 'seeders': 112, 'completed': 496, 'leechers': 2}]}
 ```
 
-## From the commandline
-
-```
-python torrent_tracker_scraper/scraper.py -i 45b3d693cff285975f622acaeb75c5626acaff6f
-
-[{'infohash': '45b3d693cff285975f622acaeb75c5626acaff6f', 'seeders': 1, 'completed': 0, 'leechers': 0}]
-
-
-python torrent_tracker_scraper/scraper.py -i 88334ec1d90afe94a22c6de5756268599f5f8ea2,5b6a484a018beed4d01f2f57e6d029a4190a9d04
-
-[{'infohash': '88334ec1d90afe94a22c6de5756268599f5f8ea2', 'seeders': 3, 'completed': 6, 'leechers': 0}, {'infohash': '5b6a484a018beed4d01f2f57e6d029a4190a9d04', 'seeders': 2, 'completed': 12, 'leechers': 0}]
-```
-
-Get your scrap information
+Get your scrapped information
 
 <img src="docs/imgs/thief-with-an-early.2000s-limp-bizkit-cd.jpg" width="400">
 
