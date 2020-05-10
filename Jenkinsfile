@@ -11,6 +11,7 @@ pipeline {
         stage('Install') { 
             steps {
                 withEnv(["HOME=${env.WORKSPACE}"]) {
+                    sh('python --version')
                     sh('pip install --user pipenv')
                     sh '$HOME/.local/bin/pipenv lock --dev --requirements > requirements.txt' 
                     sh 'pip install --user -r requirements.txt'
@@ -19,7 +20,7 @@ pipeline {
         }
          stage('Test') { 
             steps {
-                sh '$HOME/.local/bin/pytest' 
+                sh 'python3 -m pytest' 
             }
         }
     }
