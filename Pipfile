@@ -8,5 +8,6 @@ coverage = "*"
 coverage-badge = "*"
 twine = "*"
 pytest = "*"
+importlib-metadata = "*"
 
 [packages]
