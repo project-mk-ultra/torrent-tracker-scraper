@@ -1,17 +1,14 @@
 # !/usr/bin/env python
 # scrape.py
+import argparse
 import binascii
 import json
 import logging
 import os
 import random
+import socket
 import struct
 from threading import Timer
-import logging
-import socket
-import argparse
-import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +67,7 @@ class Scraper:
         self.timeout = kwargs.get('timeout', 3)
         self.connection = Connection(hostname, port, timeout=self.timeout)
 
-    def parse_infohashes(self, infohashes):
+    def parse_infohashes(self, infohashes) -> list:
         if isinstance(infohashes, str):
             if "," not in infohashes:
                 if self.is_40_char_long(infohashes):
