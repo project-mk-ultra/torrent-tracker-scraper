@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="torrent-tracker-scraper",
-    version="3.0.0",
+    version="3.0.2",
     author="azerty",
     packages=['torrent_tracker_scraper'],
     author_email="kenokech94@gmail.com",
@@ -20,6 +20,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ),
     install_requires=[
-
+        'requests'
     ],
 )
