@@ -1,17 +1,19 @@
 # !/usr/bin/env python
 # scrape.py
+import argparse
 import binascii
 import json
 import logging
 import os
 import random
+import socket
+import requests
+import io
 import struct
 from threading import Timer
-import logging
-import socket
-import argparse
-import logging
-
+from urllib.parse import urlparse
+from multiprocessing import Pool
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -30,23 +32,9 @@ class Connection:
         try:
             # connect socket
             sock.connect((self.hostname, self.port))
-            logger.debug(
-                f'Successfully connected to {self.hostname} {self.port}. Set timeout to {timeout} secs.')
-        except Exception as e:
-            # handle socket connection error
-            logger.error(
-                "Tracker udp://{0}:{1} down falling back to udp://tracker.coppersurfer.tk".format(
-                    hostname, port))
-            try:
-                sock.connect(("tracker.coppersurfer.tk", 6969))
-                return sock
-            except Exception as e:
-                sock.close()
-                logger.error(e, logging.ERROR)
-                logger.error(
-                    " Tracker udp://{0}:{1} is also down, check your Internet".format("tracker.coppersurfer.tk",
-                                                                                      6969))
-                return None
+        except socket.error:
+            sock.close()
+            return None                                                                              
         return sock
 
     def close(self):
@@ -58,19 +46,21 @@ class Connection:
 
 
 class Scraper:
-    def __init__(self, hostname, port, json=False, **kwargs):
+    def __init__(self, **kwargs):
         """
         Launches a scraper bound to a particular tracker
-        :param hostname: Tracker hostname e.g. coppersuffer.tk
-        :param port: 6969, self-explanatory
-        :param json: dictates if a json object should be returned as the output
-        :param TODO: timeout: Timeout value in seconds, program exits if no response received within this period
+        :Keyword Arguments:
+            :param trackers (list): An array of trackers in the url format e.g udp://tracker.coppersurfer.tk:6969/announce
+            :param infohashes (list): List of infohashes SHA-1 representation of the ```info``` key in the torrent file that should be parsed e.g. 95105D919C10E64AE4FA31067A8D37CCD33FE92D
+            :param timeout (int): Timeout value in seconds, program exits if no response received within this period
         """
-        self.json = json
-        self.timeout = kwargs.get('timeout', 3)
-        self.connection = Connection(hostname, port, timeout=self.timeout)
+        self.trackers = kwargs.get("trackers")
+        self.infohashes = kwargs.get("infohashes")
+        self.timeout = kwargs.get("timeout", 10)
 
-    def parse_infohashes(self, infohashes):
+
+    def parse_infohashes(self) -> list:
+        infohashes = self.infohashes
         if isinstance(infohashes, str):
             if "," not in infohashes:
                 if self.is_40_char_long(infohashes):
@@ -82,27 +72,30 @@ class Scraper:
             return list(filter(lambda infohash: self.is_40_char_long(infohash) is True, infohashes))
         return None
 
-    def scrape(self, infohashes):
-        """
-        Takes in an infohash or infohashes. Returns seeders, leechers and completed
-        information
-        :param infohashes: SHA-1 representation of the ```info``` key in the torrent file
-        :return: [(infohash, seeders, leechers, completed),...]
-        """
+    def is_not_blank(self, s):
+        return bool(s and s.strip())
 
-        infohashes = self.parse_infohashes(infohashes)
+    def get_trackers(self) -> list:
+        if self.trackers is None:
+            trackers = list()
+            response = requests.get('https://newtrackon.com/api/stable')
+            response = io.StringIO(response.text)
+            for line in response.readlines():
+                if self.is_not_blank(line):
+                    line = line.rstrip()
+                    trackers.append(line)
+        else:
+            trackers = self.trackers
+        trackers = list(map(lambda tracker: urlparse(tracker), trackers))
+        trackers = list(filter(lambda tracker: tracker.scheme == 'udp', trackers))
+        return trackers
 
-        if infohashes is None or len(infohashes) == 0:
-            logger.info("Nothing to do. No infohashes passed the checks")
-            return []
-
-        logger.debug(f'Scraping infohashes: {infohashes}')
-
-        tracker_url = f'udp://{self.connection.hostname}:{self.connection.port}'
-
+    def scrape_tracker(self, tracker):
+        self.connection = Connection(tracker.hostname, tracker.port, self.timeout)
+        
         # Quit scraping if there is no connection
         if self.connection.sock is None:
-            return "Tracker {0} is down".format(tracker_url)
+            return []
 
         # Protocol says to keep it that way
         protocol_id = 0x41727101980
@@ -115,7 +108,10 @@ class Scraper:
         self.connection.sock.send(packet)
 
         # Receive a Connect Request response
-        res = self.connection.sock.recv(16)
+        try: 
+            res = self.connection.sock.recv(16)
+        except:
+            return []
         _, transaction_id, connection_id = struct.unpack(">LLQ", res)
 
         results = list()
@@ -126,7 +122,7 @@ class Scraper:
         # holds bad error messages
         _bad_results = list()
         packet_hashes = bytearray(str(), 'utf-8')
-        for infohash in infohashes:
+        for infohash in self.infohashes:
             if not self.is_40_char_long(infohash):
                 _bad_results.append(
                     {"infohash": infohash, "error": "Bad infohash"})
@@ -144,24 +140,53 @@ class Scraper:
 
         # Scrape response
         try:
-            res = self.connection.sock.recv(8 + (12 * len(infohashes)))
+            res = self.connection.sock.recv(8 + (12 * len(self.infohashes)))
         except socket.timeout as e:
             logger.debug(f'socket.timeout {e}')
             return ['socket.timeout error']
 
         index = 8
+        tracker = f'{tracker.scheme}//:{tracker.netloc}'
         for i in range(1, len(_good_infohashes) + 1):
             logger.debug("Offset: {} {}".format(
                 index + (i * 12) - 12, index + (i * 12)))
             seeders, completed, leechers = struct.unpack(
                 ">LLL", res[index + (i * 12) - 12: index + (i * 12)])
-            results.append({"infohash": infohashes[i - 1],
+            results.append({ "infohash": self.infohashes[i - 1],
                             "seeders": seeders,
                             "completed": completed,
                             "leechers": leechers})
         results += _bad_results
-        return results
+        return {'tracker': tracker, 'results': results}
 
+    def scrape(self):
+        """
+        Takes in an infohash or infohashes. Returns seeders, leechers and completed
+        information
+        :param infohashes: SHA-1 representation of the ```info``` key in the torrent file
+        :return: [(infohash, seeders, leechers, completed),...]
+        """
+
+        self.trackers = self.get_trackers()
+        
+        infohashes = self.parse_infohashes()
+        if infohashes is None or len(infohashes) == 0:
+            logger.info("Nothing to do. No infohashes passed the checks")
+            return []
+
+        logger.info(f'Scraping infohashes: {infohashes}')
+
+        p = Pool()
+        results = p.map_async(self.scrape_tracker, self.trackers)
+        p.close()
+        while (True):
+            if (results.ready()): break
+            _ = results._number_left
+            time.sleep(0.3)
+        results = list(filter(lambda result: result != [], results.get()))
+
+        return results
+              
     def is_40_char_long(self, s: str):
         """
         Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
@@ -171,63 +196,3 @@ class Scraper:
         if len(s) == 40:
             return True
         return False
-
-    def __del__(self):
-        """
-        Close connection if the scraper object is being destroyed
-        :return: None
-        """
-        if self.connection is not None:
-            self.connection.close()
-
-    def __repr__(self):
-        return f'{self.connection.hostname}:{self.connection.port}'
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser._action_groups.pop()
-    required = parser.add_argument_group('required arguments')
-    optional = parser.add_argument_group('optional arguments')
-    required.add_argument("-i",
-                          "--infohash",
-                          help="A torrents infohash or a file path consisting of infohashes",
-                          required=True)
-    optional.add_argument("-t",
-                          "--tracker",
-                          help="Entered in the format :tracker",
-                          type=str,
-                          default="tracker.leechers-paradise.org")
-    optional.add_argument("-p",
-                          "--port",
-                          help="Entered in the format :port",
-                          type=int,
-                          default=6969)
-    optional.add_argument("-j",
-                          "--json",
-                          help="Outputs in JSON format. If you are thinking of going this route, I would suggesting using the tool module option, but hey...who am I to tell you what to do",
-                          dest='json',
-                          action='store_true')
-    optional.add_argument("-to",
-                          "--timeout",
-                          help="Enter the timeout in seconds",
-                          type=int,
-                          default=3)
-    optional.add_argument("-v",
-                          "--verbose",
-                          help="Increase verbosity for debugging purposes",
-                          action="store_true")
-    parser.set_defaults(json=False)
-
-    args, unknown = parser.parse_known_args()
-
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
-                        format='[%(levelname)s]: %(message)s')
-    logger.debug("Logger initialised")
-
-    scraper = Scraper(args.tracker, args.port, args.json, timeout=args.timeout)
-    results = scraper.scrape(args.infohash)
-    if args.json:
-        print(json.dumps(results))
-    else:
-        print(results)
