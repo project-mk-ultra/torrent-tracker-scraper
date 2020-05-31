@@ -30,7 +30,7 @@ scraper = scraper.Scraper(infohashes=['82026E5C56F0AEACEDCE2D7BC2074A644BC50990'
 
 [
     ...,
-    {'tracker': 'udp//:explodie.org:6969', 
+    {'tracker': 'udp://explodie.org:6969', 
         'results': [
             {
                 'infohash': '82026E5C56F0AEACEDCE2D7BC2074A644BC50990', 
@@ -64,7 +64,7 @@ scraper = scraper.Scraper(trackers=['udp//:explodie.org:6969'], infohashes=['820
 
 [
     ...,
-    {'tracker': 'udp//:explodie.org:6969', 
+    {'tracker': 'udp://explodie.org:6969', 
         'results': [
             {
                 'infohash': '82026E5C56F0AEACEDCE2D7BC2074A644BC50990', 
