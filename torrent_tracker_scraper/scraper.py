@@ -125,7 +125,7 @@ class Scraper:
 
         results = list()
 
-        logger.debug("Parsing list of infohashes")
+        logger.debug("Parsing list of infohashes [%s]", tracker.netloc)
         # holds good infohashes for unpacking, used to weed out bad infohashes
         _good_infohashes = list()
         # holds bad error messages
