@@ -23,7 +23,7 @@ def mixed_infohashes():
     ]
 
 
-def test_parse_empty_infohashes():
+def test_parse_none_infohashes():
     _scraper = scraper.Scraper()
     assert _scraper.parse_infohashes() == []
 
