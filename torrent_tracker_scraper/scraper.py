@@ -34,6 +34,10 @@ def filter_valid_infohashes(infohashes: list) -> list:
     return list(filter(lambda i: is_infohash_valid(i), infohashes))
 
 
+def is_not_blank(s: str) -> bool:
+    return bool(s and s.strip())
+
+
 class Connection:
     def __init__(self, hostname, port, timeout):
         self.hostname = hostname
@@ -81,16 +85,13 @@ class Scraper:
             infohashes = filter_valid_infohashes(infohashes)
         return infohashes
 
-    def is_not_blank(self, s):
-        return bool(s and s.strip())
-
     def get_trackers(self) -> list:
         if self.trackers is None:
             trackers = list()
             response = requests.get("https://newtrackon.com/api/stable")
             response = io.StringIO(response.text)
             for line in response.readlines():
-                if self.is_not_blank(line):
+                if is_not_blank(line):
                     line = line.rstrip()
                     trackers.append(line)
         else:
