@@ -1,19 +1,16 @@
 # !/usr/bin/env python
 # scrape.py
-import argparse
 import binascii
-import json
+import io
 import logging
-import os
 import random
 import socket
-import requests
-import io
 import struct
-from threading import Timer
-from urllib.parse import urlparse
-from multiprocessing import Pool
 import time
+from multiprocessing import Pool
+from urllib.parse import urlparse
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -22,27 +19,25 @@ class Connection:
     def __init__(self, hostname, port, timeout):
         self.hostname = hostname
         self.port = port
-        self.sock = self.connect(
-            self.hostname, self.port, timeout)
+        self.sock = self.connect(self.hostname, self.port, timeout)
 
-    def connect(self, hostname, port, timeout):
-        # create socket
+    def connect(self, timeout):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(timeout)
         try:
-            # connect socket
             sock.connect((self.hostname, self.port))
-        except socket.error:
+        except socket.error as e:
             sock.close()
-            return None                                                                              
+            logger.warning(
+                "Could not connect to %s:%s: %s", self.hostname, self.port, e
+            )
+            return None
         return sock
 
     def close(self):
-        """
-        Closes a socket connection gracefully
-        :return: None
-        """
-        self.sock.close()
+        """Closes a socket connection gracefully"""
+        if self.sock:
+            self.sock.close()
 
 
 class Scraper:
@@ -58,7 +53,6 @@ class Scraper:
         self.infohashes = kwargs.get("infohashes")
         self.timeout = kwargs.get("timeout", 10)
 
-
     def parse_infohashes(self) -> list:
         infohashes = self.infohashes
         if isinstance(infohashes, str):
@@ -66,10 +60,19 @@ class Scraper:
                 if self.is_40_char_long(infohashes):
                     return [infohashes]
             if "," in infohashes:
-                infohashes = infohashes.split(',')
-                return list(filter(lambda infohash: self.is_40_char_long(infohash) is True, infohashes))
+                infohashes = infohashes.split(",")
+                return list(
+                    filter(
+                        lambda infohash: self.is_40_char_long(infohash) is True,
+                        infohashes,
+                    )
+                )
         if isinstance(infohashes, list):
-            return list(filter(lambda infohash: self.is_40_char_long(infohash) is True, infohashes))
+            return list(
+                filter(
+                    lambda infohash: self.is_40_char_long(infohash) is True, infohashes
+                )
+            )
         return None
 
     def is_not_blank(self, s):
@@ -78,7 +81,7 @@ class Scraper:
     def get_trackers(self) -> list:
         if self.trackers is None:
             trackers = list()
-            response = requests.get('https://newtrackon.com/api/stable')
+            response = requests.get("https://newtrackon.com/api/stable")
             response = io.StringIO(response.text)
             for line in response.readlines():
                 if self.is_not_blank(line):
@@ -87,12 +90,12 @@ class Scraper:
         else:
             trackers = self.trackers
         trackers = list(map(lambda tracker: urlparse(tracker), trackers))
-        trackers = list(filter(lambda tracker: tracker.scheme == 'udp', trackers))
+        trackers = list(filter(lambda tracker: tracker.scheme == "udp", trackers))
         return trackers
 
     def scrape_tracker(self, tracker):
         self.connection = Connection(tracker.hostname, tracker.port, self.timeout)
-        
+
         # Quit scraping if there is no connection
         if self.connection.sock is None:
             return []
@@ -108,7 +111,7 @@ class Scraper:
         self.connection.sock.send(packet)
 
         # Receive a Connect Request response
-        try: 
+        try:
             res = self.connection.sock.recv(16)
         except:
             return []
@@ -121,43 +124,46 @@ class Scraper:
         _good_infohashes = list()
         # holds bad error messages
         _bad_results = list()
-        packet_hashes = bytearray(str(), 'utf-8')
+        packet_hashes = bytearray(str(), "utf-8")
         for infohash in self.infohashes:
             if not self.is_40_char_long(infohash):
-                _bad_results.append(
-                    {"infohash": infohash, "error": "Bad infohash"})
+                _bad_results.append({"infohash": infohash, "error": "Bad infohash"})
                 continue
             try:
                 packet_hashes += binascii.unhexlify(infohash)
                 _good_infohashes.append(infohash)
             except Exception as e:
-                _bad_results.append(
-                    {"infohash": infohash, "error": f'Error: {e}'})
+                _bad_results.append({"infohash": infohash, "error": f"Error: {e}"})
                 continue
-        packet = struct.pack(">QLL", connection_id, 2,
-                             transaction_id) + packet_hashes
+        packet = struct.pack(">QLL", connection_id, 2, transaction_id) + packet_hashes
         self.connection.sock.send(packet)
 
         # Scrape response
         try:
             res = self.connection.sock.recv(8 + (12 * len(self.infohashes)))
         except socket.timeout as e:
-            logger.debug(f'socket.timeout {e}')
-            return ['socket.timeout error']
+            logger.debug(f"socket.timeout {e}")
+            return ["socket.timeout error"]
 
         index = 8
-        tracker = f'{tracker.scheme}//:{tracker.netloc}'
+        tracker = f"{tracker.scheme}//:{tracker.netloc}"
         for i in range(1, len(_good_infohashes) + 1):
-            logger.debug("Offset: {} {}".format(
-                index + (i * 12) - 12, index + (i * 12)))
+            logger.debug(
+                "Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12))
+            )
             seeders, completed, leechers = struct.unpack(
-                ">LLL", res[index + (i * 12) - 12: index + (i * 12)])
-            results.append({ "infohash": self.infohashes[i - 1],
-                            "seeders": seeders,
-                            "completed": completed,
-                            "leechers": leechers})
+                ">LLL", res[index + (i * 12) - 12 : index + (i * 12)]
+            )
+            results.append(
+                {
+                    "infohash": self.infohashes[i - 1],
+                    "seeders": seeders,
+                    "completed": completed,
+                    "leechers": leechers,
+                }
+            )
         results += _bad_results
-        return {'tracker': tracker, 'results': results}
+        return {"tracker": tracker, "results": results}
 
     def scrape(self):
         """
@@ -168,25 +174,26 @@ class Scraper:
         """
 
         self.trackers = self.get_trackers()
-        
+
         infohashes = self.parse_infohashes()
         if infohashes is None or len(infohashes) == 0:
             logger.info("Nothing to do. No infohashes passed the checks")
             return []
 
-        logger.info(f'Scraping infohashes: {infohashes}')
+        logger.info(f"Scraping infohashes: {infohashes}")
 
         p = Pool()
         results = p.map_async(self.scrape_tracker, self.trackers)
         p.close()
-        while (True):
-            if (results.ready()): break
+        while True:
+            if results.ready():
+                break
             _ = results._number_left
             time.sleep(0.3)
         results = list(filter(lambda result: result != [], results.get()))
 
         return results
-              
+
     def is_40_char_long(self, s: str):
         """
         Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
