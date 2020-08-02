@@ -14,6 +14,14 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+# Protocol says to keep it that way (https://www.bittorrent.org/beps/bep_0015.html)
+PROTOCOL_ID = 0x41727101980
+
+
+class TRACKER_ACTION:
+    CONNECT = 0
+    SCRAPE = 2
+
 
 def is_infohash_valid(infohash: str) -> bool:
     """
@@ -42,7 +50,7 @@ class Connection:
     def __init__(self, hostname, port, timeout):
         self.hostname = hostname
         self.port = port
-        self.sock = self.connect(self.hostname, self.port, timeout)
+        self.sock = self.connect(timeout)
 
     def connect(self, timeout):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -107,14 +115,13 @@ class Scraper:
         if self.connection.sock is None:
             return []
 
-        # Protocol says to keep it that way
-        protocol_id = 0x41727101980
-
         # We should get the same in response
         transaction_id = random.randrange(1, 65535)
 
         # Send a Connect Request
-        packet = struct.pack(">QLL", protocol_id, 0, transaction_id)
+        packet = struct.pack(
+            ">QLL", PROTOCOL_ID, TRACKER_ACTION.CONNECT, transaction_id
+        )
         self.connection.sock.send(packet)
 
         # Receive a Connect Request response
@@ -142,7 +149,10 @@ class Scraper:
             except Exception as e:
                 _bad_results.append({"infohash": infohash, "error": f"Error: {e}"})
                 continue
-        packet = struct.pack(">QLL", connection_id, 2, transaction_id) + packet_hashes
+        packet = (
+            struct.pack(">QLL", connection_id, TRACKER_ACTION.SCRAPE, transaction_id)
+            + packet_hashes
+        )
         self.connection.sock.send(packet)
 
         # Scrape response
@@ -195,7 +205,6 @@ class Scraper:
         while True:
             if results.ready():
                 break
-            _ = results._number_left
             time.sleep(0.3)
         results = list(filter(lambda result: result != [], results.get()))
 
