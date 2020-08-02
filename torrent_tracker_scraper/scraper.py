@@ -1,53 +1,80 @@
 # !/usr/bin/env python
 # scrape.py
-import argparse
 import binascii
-import json
+import io
 import logging
-import os
 import random
 import socket
-import requests
-import io
 import struct
-from threading import Timer
-from urllib.parse import urlparse
-from multiprocessing import Pool
 import time
+from multiprocessing import Pool
+from urllib.parse import urlparse
+
+import requests
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
+# Protocol says to keep it that way (https://www.bittorrent.org/beps/bep_0015.html)
+PROTOCOL_ID = 0x41727101980
+
+
+class TRACKER_ACTION:
+    CONNECT = 0
+    SCRAPE = 2
+
+
+def is_infohash_valid(infohash: str) -> bool:
+    """
+    Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
+    :param infohash:
+    :return: True if infohash is valid, False otherwise
+    """
+    if not isinstance(infohash, str):
+        return False
+
+    if len(infohash) == 40:
+        return True
+    return False
+
+
+def filter_valid_infohashes(infohashes: list) -> list:
+    """Returns a list with only valid infohashes"""
+    return list(filter(lambda i: is_infohash_valid(i), infohashes))
+
+
+def is_not_blank(s: str) -> bool:
+    return bool(s and s.strip())
 
 
 class Connection:
     def __init__(self, hostname, port, timeout):
         self.hostname = hostname
         self.port = port
-        self.sock = self.connect(self.hostname, self.port, timeout)
+        self.sock = self.connect(timeout)
 
-    def connect(self, hostname, port, timeout):
-        # create socket
+    def connect(self, timeout):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(timeout)
         try:
-            # connect socket
             sock.connect((self.hostname, self.port))
-        except socket.error:
+        except socket.error as e:
             sock.close()
+            logger.warning(
+                "Could not connect to %s:%s: %s", self.hostname, self.port, e
+            )
             return None
         return sock
 
     def close(self):
-        """
-        Closes a socket connection gracefully
-        :return: None
-        """
-        self.sock.close()
+        """Closes a socket connection gracefully"""
+        if self.sock:
+            self.sock.close()
 
 
 class Scraper:
-    def __init__(self, **kwargs):
+    def __init__(self, trackers=None, infohashes=[], timeout=10):
         """
         Launches a scraper bound to a particular tracker
         :Keyword Arguments:
@@ -55,34 +82,18 @@ class Scraper:
             :param infohashes (list): List of infohashes SHA-1 representation of the ```info``` key in the torrent file that should be parsed e.g. 95105D919C10E64AE4FA31067A8D37CCD33FE92D
             :param timeout (int): Timeout value in seconds, program exits if no response received within this period
         """
-        self.trackers = kwargs.get("trackers")
-        self.infohashes = kwargs.get("infohashes")
-        self.timeout = kwargs.get("timeout", 10)
+        self.trackers = trackers
+        self.infohashes = infohashes
+        self.timeout = timeout
 
     def parse_infohashes(self) -> list:
         infohashes = self.infohashes
         if isinstance(infohashes, str):
-            if "," not in infohashes:
-                if self.is_40_char_long(infohashes):
-                    return [infohashes]
-            if "," in infohashes:
-                infohashes = infohashes.split(",")
-                return list(
-                    filter(
-                        lambda infohash: self.is_40_char_long(infohash) is True,
-                        infohashes,
-                    )
-                )
-        if isinstance(infohashes, list):
-            return list(
-                filter(
-                    lambda infohash: self.is_40_char_long(infohash) is True, infohashes
-                )
-            )
-        return None
-
-    def is_not_blank(self, s):
-        return bool(s and s.strip())
+            _infohashes = infohashes.split(",")
+            infohashes = filter_valid_infohashes(_infohashes)
+        elif isinstance(infohashes, list):
+            infohashes = filter_valid_infohashes(infohashes)
+        return infohashes
 
     def get_trackers(self) -> list:
         if self.trackers is None:
@@ -90,7 +101,7 @@ class Scraper:
             response = requests.get("https://newtrackon.com/api/stable")
             response = io.StringIO(response.text)
             for line in response.readlines():
-                if self.is_not_blank(line):
+                if is_not_blank(line):
                     line = line.rstrip()
                     trackers.append(line)
         else:
@@ -106,14 +117,13 @@ class Scraper:
         if self.connection.sock is None:
             return []
 
-        # Protocol says to keep it that way
-        protocol_id = 0x41727101980
-
         # We should get the same in response
         transaction_id = random.randrange(1, 65535)
 
         # Send a Connect Request
-        packet = struct.pack(">QLL", protocol_id, 0, transaction_id)
+        packet = struct.pack(
+            ">QLL", PROTOCOL_ID, TRACKER_ACTION.CONNECT, transaction_id
+        )
         self.connection.sock.send(packet)
 
         # Receive a Connect Request response
@@ -132,7 +142,7 @@ class Scraper:
         _bad_results = list()
         packet_hashes = bytearray(str(), "utf-8")
         for infohash in self.infohashes:
-            if not self.is_40_char_long(infohash):
+            if not is_infohash_valid(infohash):
                 _bad_results.append({"infohash": infohash, "error": "Bad infohash"})
                 continue
             try:
@@ -141,7 +151,10 @@ class Scraper:
             except Exception as e:
                 _bad_results.append({"infohash": infohash, "error": f"Error: {e}"})
                 continue
-        packet = struct.pack(">QLL", connection_id, 2, transaction_id) + packet_hashes
+        packet = (
+            struct.pack(">QLL", connection_id, TRACKER_ACTION.SCRAPE, transaction_id)
+            + packet_hashes
+        )
         self.connection.sock.send(packet)
 
         # Scrape response
@@ -194,18 +207,7 @@ class Scraper:
         while True:
             if results.ready():
                 break
-            _ = results._number_left
             time.sleep(0.3)
         results = list(filter(lambda result: result != [], results.get()))
 
         return results
-
-    def is_40_char_long(self, s: str):
-        """
-        Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
-        :param s:
-        :return: True if infohash is valid, False otherwise
-        """
-        if len(s) == 40:
-            return True
-        return False
