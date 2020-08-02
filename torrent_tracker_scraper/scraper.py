@@ -15,6 +15,25 @@ import requests
 logger = logging.getLogger(__name__)
 
 
+def is_infohash_valid(infohash: str) -> bool:
+    """
+    Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
+    :param infohash:
+    :return: True if infohash is valid, False otherwise
+    """
+    if not isinstance(infohash, str):
+        return False
+
+    if len(infohash) == 40:
+        return True
+    return False
+
+
+def filter_valid_infohashes(infohashes: list) -> list:
+    """Returns a list with only valid infohashes"""
+    return list(filter(lambda i: is_infohash_valid(i), infohashes))
+
+
 class Connection:
     def __init__(self, hostname, port, timeout):
         self.hostname = hostname
@@ -41,7 +60,7 @@ class Connection:
 
 
 class Scraper:
-    def __init__(self, **kwargs):
+    def __init__(self, trackers=None, infohashes=[], timeout=10):
         """
         Launches a scraper bound to a particular tracker
         :Keyword Arguments:
@@ -49,31 +68,18 @@ class Scraper:
             :param infohashes (list): List of infohashes SHA-1 representation of the ```info``` key in the torrent file that should be parsed e.g. 95105D919C10E64AE4FA31067A8D37CCD33FE92D
             :param timeout (int): Timeout value in seconds, program exits if no response received within this period
         """
-        self.trackers = kwargs.get("trackers")
-        self.infohashes = kwargs.get("infohashes")
-        self.timeout = kwargs.get("timeout", 10)
+        self.trackers = trackers
+        self.infohashes = infohashes
+        self.timeout = timeout
 
     def parse_infohashes(self) -> list:
         infohashes = self.infohashes
         if isinstance(infohashes, str):
-            if "," not in infohashes:
-                if self.is_40_char_long(infohashes):
-                    return [infohashes]
-            if "," in infohashes:
-                infohashes = infohashes.split(",")
-                return list(
-                    filter(
-                        lambda infohash: self.is_40_char_long(infohash) is True,
-                        infohashes,
-                    )
-                )
-        if isinstance(infohashes, list):
-            return list(
-                filter(
-                    lambda infohash: self.is_40_char_long(infohash) is True, infohashes
-                )
-            )
-        return None
+            _infohashes = infohashes.split(",")
+            infohashes = filter_valid_infohashes(_infohashes)
+        elif isinstance(infohashes, list):
+            infohashes = filter_valid_infohashes(infohashes)
+        return infohashes
 
     def is_not_blank(self, s):
         return bool(s and s.strip())
@@ -126,7 +132,7 @@ class Scraper:
         _bad_results = list()
         packet_hashes = bytearray(str(), "utf-8")
         for infohash in self.infohashes:
-            if not self.is_40_char_long(infohash):
+            if not is_infohash_valid(infohash):
                 _bad_results.append({"infohash": infohash, "error": "Bad infohash"})
                 continue
             try:
@@ -193,13 +199,3 @@ class Scraper:
         results = list(filter(lambda result: result != [], results.get()))
 
         return results
-
-    def is_40_char_long(self, s: str):
-        """
-        Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
-        :param s:
-        :return: True if infohash is valid, False otherwise
-        """
-        if len(s) == 40:
-            return True
-        return False
