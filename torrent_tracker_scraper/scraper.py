@@ -74,7 +74,7 @@ class Connection:
 
 
 class Scraper:
-    def __init__(self, trackers=None, infohashes=[], timeout=10):
+    def __init__(self, trackers=[], infohashes=[], timeout=10):
         """
         Launches a scraper bound to a particular tracker
         :Keyword Arguments:
@@ -96,7 +96,7 @@ class Scraper:
         return infohashes
 
     def get_trackers(self) -> list:
-        if self.trackers is None:
+        if not self.trackers:
             trackers = list()
             response = requests.get("https://newtrackon.com/api/stable")
             response = io.StringIO(response.text)
@@ -108,17 +108,25 @@ class Scraper:
             trackers = self.trackers
         trackers = list(map(lambda tracker: urlparse(tracker), trackers))
         trackers = list(filter(lambda tracker: tracker.scheme == "udp", trackers))
+        logger.debug("Got trackers: %s", trackers)
         return trackers
 
+    def get_transaction_id(self):
+        return random.randrange(1, 65535)
+
     def scrape_tracker(self, tracker):
+        """
+        To understand how data is retrieved visit: https://www.bittorrent.org/beps/bep_0015.html
+        """
+
         self.connection = Connection(tracker.hostname, tracker.port, self.timeout)
 
         # Quit scraping if there is no connection
         if self.connection.sock is None:
             return []
 
-        # We should get the same in response
-        transaction_id = random.randrange(1, 65535)
+        # We should get the same value in a response
+        transaction_id = self.get_transaction_id()
 
         # Send a Connect Request
         packet = struct.pack(
@@ -131,7 +139,17 @@ class Scraper:
             res = self.connection.sock.recv(16)
         except:
             return []
-        _, transaction_id, connection_id = struct.unpack(">LLQ", res)
+        _, response_transaction_id, connection_id = struct.unpack(">LLQ", res)
+
+        if transaction_id != response_transaction_id:
+            logger.error(
+                "Transactions IDs do not match. Connect request: %d Connect response: %d",
+                transaction_id,
+                response_transaction_id,
+            )
+            raise Exception(
+                f"Transactions IDs do not match. Connect request: {transaction_id} Connect response: {response_transaction_id}"
+            )
 
         results = list()
 
@@ -139,17 +157,17 @@ class Scraper:
         # holds good infohashes for unpacking, used to weed out bad infohashes
         _good_infohashes = list()
         # holds bad error messages
-        _bad_results = list()
+        _bad_infohashes = list()
         packet_hashes = bytearray(str(), "utf-8")
         for infohash in self.infohashes:
             if not is_infohash_valid(infohash):
-                _bad_results.append({"infohash": infohash, "error": "Bad infohash"})
+                _bad_infohashes.append({"infohash": infohash, "error": "Bad infohash"})
                 continue
             try:
                 packet_hashes += binascii.unhexlify(infohash)
                 _good_infohashes.append(infohash)
-            except Exception as e:
-                _bad_results.append({"infohash": infohash, "error": f"Error: {e}"})
+            except TypeError as e:
+                _bad_infohashes.append({"infohash": infohash, "error": e})
                 continue
         packet = (
             struct.pack(">QLL", connection_id, TRACKER_ACTION.SCRAPE, transaction_id)
@@ -161,11 +179,10 @@ class Scraper:
         try:
             res = self.connection.sock.recv(8 + (12 * len(self.infohashes)))
         except socket.timeout as e:
-            logger.debug(f"socket.timeout {e}")
+            logger.error("socket.timeout: %s", e)
             return ["socket.timeout error"]
 
         index = 8
-        tracker = f"{tracker.scheme}//:{tracker.netloc}"
         for i in range(1, len(_good_infohashes) + 1):
             logger.debug(
                 "Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12))
@@ -181,7 +198,8 @@ class Scraper:
                     "leechers": leechers,
                 }
             )
-        results += _bad_results
+        results += _bad_infohashes
+        tracker = f"{tracker.scheme}//:{tracker.netloc}"
         return {"tracker": tracker, "results": results}
 
     def scrape(self):
@@ -195,7 +213,7 @@ class Scraper:
         self.trackers = self.get_trackers()
 
         infohashes = self.parse_infohashes()
-        if infohashes is None or len(infohashes) == 0:
+        if not infohashes:
             logger.info("Nothing to do. No infohashes passed the checks")
             return []
 
