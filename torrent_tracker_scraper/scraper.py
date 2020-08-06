@@ -114,6 +114,24 @@ class Scraper:
     def get_transaction_id(self):
         return random.randrange(1, 65535)
 
+    def _connect_request(self, transaction_id):
+        # Send a Connect Request
+        packet = struct.pack(
+            ">QLL", PROTOCOL_ID, TRACKER_ACTION.CONNECT, transaction_id
+        )
+        self.connection.sock.send(packet)
+
+        # Receive a Connect Request response
+        res = self.connection.sock.recv(16)
+        logger.info("### res connect: %s", res)
+        try:
+            _, response_transaction_id, connection_id = struct.unpack(">LLQ", res)
+        except struct.error as e:
+            logger.error("Unpacking connect request response failed: %s", e)
+            raise Exception("Unpacking connect request response failed: %s" % e)
+
+        return response_transaction_id, connection_id
+
     def scrape_tracker(self, tracker):
         """
         To understand how data is retrieved visit: https://www.bittorrent.org/beps/bep_0015.html
@@ -128,19 +146,8 @@ class Scraper:
         # We should get the same value in a response
         transaction_id = self.get_transaction_id()
 
-        # Send a Connect Request
-        packet = struct.pack(
-            ">QLL", PROTOCOL_ID, TRACKER_ACTION.CONNECT, transaction_id
-        )
-        self.connection.sock.send(packet)
-
-        # Receive a Connect Request response
-        try:
-            res = self.connection.sock.recv(16)
-        except:
-            return []
-        _, response_transaction_id, connection_id = struct.unpack(">LLQ", res)
-
+        response_transaction_id, connection_id = self._connect_request(transaction_id)
+        logger.info("### connection : %s", connection_id)
         if transaction_id != response_transaction_id:
             logger.error(
                 "Transactions IDs do not match. Connect request: %d Connect response: %d",
@@ -183,6 +190,12 @@ class Scraper:
             return ["socket.timeout error"]
 
         index = 8
+        # TODO: Current implementation don't show correct results.
+        # We iterate through valid infohashes
+        # and when merging received data with infohash we assume that
+        # currect infohash is at the same index in self.infohashes
+
+        # It happens when lenght self.infohashes != good_infohashes (because of filtering L180)
         for i in range(1, len(_good_infohashes) + 1):
             logger.debug("response: %s", res)
             logger.debug(
