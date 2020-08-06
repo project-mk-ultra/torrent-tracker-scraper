@@ -9,12 +9,17 @@ from torrent_tracker_scraper.scraper import Connection, Scraper
 
 @pytest.fixture
 def scraper_basic():
+    """
+    Returns scraper instance initialized with trackers and infohashes.
+    """
     scraper_ = scraper.Scraper(
         trackers=["udp://bt2.archive.org:6969"],
         infohashes=["73C36F980F5B1A40348678036575CCC1E0BB0E4E"],
     )
     scraper_.connection = Connection("bt2.archive.org", 6969, 10)
 
+    # Use together
+    scraper_.connect_response = b"\x00\x00\x00\x00\x00\x008@P\x87\xe0m\x108\xf6r"
     scraper_.transaction_id = 14400  # fixed in return value of socket.recv
     scraper_.connection_id = 5802853403918399090  #  fixed in return value of socket.recv
 
@@ -101,13 +106,12 @@ def test_bad_infohash_parsing(mixed_infohashes):
     ]
 
 
-def test_get_trackers():
-    scraper_ = scraper.Scraper()
-    assert type(scraper_.get_trackers()) == list
+def test_get_trackers_return_type(scraper_basic):
+    assert type(scraper_basic.get_trackers()) == list
 
 
 def test_connect_request(monkeypatch, scraper_basic):
-    recv = lambda s, f: b"\x00\x00\x00\x00\x00\x008@P\x87\xe0m\x108\xf6r"
+    recv = lambda s, f: scraper_basic.connect_response
     monkeypatch.setattr(socket, "recv", recv)
     response_transaction_id, connection_id = scraper_basic._connect_request(scraper_basic.transaction_id)
 
