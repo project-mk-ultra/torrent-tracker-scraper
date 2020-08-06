@@ -184,6 +184,7 @@ class Scraper:
 
         index = 8
         for i in range(1, len(_good_infohashes) + 1):
+            logger.debug("response: %s", res)
             logger.debug(
                 "Offset: {} {}".format(index + (i * 12) - 12, index + (i * 12))
             )
