@@ -1,11 +1,11 @@
 from socket import socket
-from unittest import mock
 
 import pytest
 
 from torrent_tracker_scraper import scraper
-from torrent_tracker_scraper.scraper import Connection, Scraper
+from torrent_tracker_scraper.scraper import Connection
 
+# TODO: Improve tests: fixtures, mocks
 
 @pytest.fixture
 def scraper_basic():
@@ -115,8 +115,7 @@ def test_connect_request(monkeypatch, scraper_basic):
     monkeypatch.setattr(socket, "recv", recv)
     response_transaction_id, connection_id = scraper_basic._connect_request(scraper_basic.transaction_id)
 
-    assert response_transaction_id == scraper_basic.transaction_id
-    assert connection_id == scraper_basic.connection_id
+    assert (response_transaction_id, connection_id) == (scraper_basic.transaction_id, scraper_basic.connection_id)
 
 
 def test_connect_request_failure(monkeypatch, scraper_basic):
