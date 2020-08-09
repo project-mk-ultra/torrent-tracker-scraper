@@ -99,9 +99,9 @@ class Scraper:
         self.good_infohashes = self.get_good_infohashes()
 
     def get_good_infohashes(self) -> list:
-        if self.good_infohashes:
+        if getattr(self, "good_infohashes", None):
             return self.good_infohashes
-
+            
         good_infohashes = []
         if isinstance(self.infohashes, str):
             infohashes_list = self.infohashes.split(",")
@@ -251,6 +251,7 @@ class Scraper:
         :return: [(infohash, seeders, leechers, completed),...]
         """
 
+        print(self.get_good_infohashes())
         self.trackers = self.get_trackers()
 
         if not self.good_infohashes:
