@@ -24,28 +24,34 @@ pipenv shell
 ```python
 from torrent_tracker_scraper import scraper
 
-scraper = scraper.Scraper(infohashes=['82026E5C56F0AEACEDCE2D7BC2074A644BC50990', '04D9A2D3FAEA111356519A0E0775E5EAEE9C944A'])
-    results = scraper.scrape()
-    print(results)
+scraper = scraper.Scraper(
+    infohashes=[
+        "82026E5C56F0AEACEDCE2D7BC2074A644BC50990",
+        "04D9A2D3FAEA111356519A0E0775E5EAEE9C944A",
+    ]
+)
+results = scraper.scrape()
+print(results)
 
 [
     ...,
-    {'tracker': 'udp://explodie.org:6969', 
+    {
+        'tracker': 'udp://explodie.org:6969',
         'results': [
             {
-                'infohash': '82026E5C56F0AEACEDCE2D7BC2074A644BC50990', 
+                'infohash': '82026E5C56F0AEACEDCE2D7BC2074A644BC50990',
                 'seeders': 246,
-                'completed': 0, 
+                'completed': 0,
                 'leechers': 36
             },
-            { 
-                'infohash': '04D9A2D3FAEA111356519A0E0775E5EAEE9C944A', 
-                'seeders': 7, 
-                'completed': 0, 
+            {
+                'infohash': '04D9A2D3FAEA111356519A0E0775E5EAEE9C944A',
+                'seeders': 7,
+                'completed': 0,
                 'leechers': 27
             }
         ]
-    }, 
+    },
     ...
 ```
 
@@ -58,28 +64,35 @@ Get your scrapped information
 ```python
 from torrent_tracker_scraper import scraper
 
-scraper = scraper.Scraper(trackers=['udp//:explodie.org:6969'], infohashes=['82026E5C56F0AEACEDCE2D7BC2074A644BC50990', '04D9A2D3FAEA111356519A0E0775E5EAEE9C944A'])
-    results = scraper.scrape()
-    print(results)
+scraper = scraper.Scraper(
+    trackers=["udp//:explodie.org:6969"],
+    infohashes=[
+        "82026E5C56F0AEACEDCE2D7BC2074A644BC50990",
+        "04D9A2D3FAEA111356519A0E0775E5EAEE9C944A",
+    ],
+)
+results = scraper.scrape()
+print(results)
 
 [
     ...,
-    {'tracker': 'udp://explodie.org:6969', 
+    {
+        'tracker': 'udp://explodie.org:6969',
         'results': [
             {
-                'infohash': '82026E5C56F0AEACEDCE2D7BC2074A644BC50990', 
+                'infohash': '82026E5C56F0AEACEDCE2D7BC2074A644BC50990',
                 'seeders': 246,
-                'completed': 0, 
+                'completed': 0,
                 'leechers': 36
             },
-            { 
-                'infohash': '04D9A2D3FAEA111356519A0E0775E5EAEE9C944A', 
-                'seeders': 7, 
-                'completed': 0, 
+            {
+                'infohash': '04D9A2D3FAEA111356519A0E0775E5EAEE9C944A',
+                'seeders': 7,
+                'completed': 0,
                 'leechers': 27
             }
         ]
-    }, 
+    },
     ...
 ```
 
