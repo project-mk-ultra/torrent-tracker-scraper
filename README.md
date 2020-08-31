@@ -114,6 +114,8 @@ Fork the code, make your changes and create a pull request.
 
 <img src="docs/imgs/thief-tiptoe.jpg" width="400">
 
-## Contributors
+## Contributors (in alphabetical order)
 
-1. <https://github.com/dessalines>
+1. <https://github.com/49e94b8f256530dc0d41f740dfe8a4c1>
+2. <https://github.com/dessalines>
+3. <https://github.com/zawi99>
