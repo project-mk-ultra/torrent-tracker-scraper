@@ -1,52 +1,90 @@
 # !/usr/bin/env python
 # scrape.py
-import argparse
 import binascii
-import json
+import io
 import logging
-import os
 import random
 import socket
-import requests
-import io
 import struct
-from threading import Timer
-from urllib.parse import urlparse
-from multiprocessing import Pool
 import time
+from multiprocessing import Pool
+from typing import Callable, List, Tuple
+from urllib.parse import urlparse
 
+import requests
+
+# TODO: Improve logger format to include process id
+logging.basicConfig()
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Protocol says to keep it that way (https://www.bittorrent.org/beps/bep_0015.html)
+PROTOCOL_ID = 0x41727101980
+# Scrape response offset, first 8 bytes (4 bytes action, 4 bytes connection_id)
+OFFSET = 8
+# Scrapre response start infohash data
+SCRAPE_RESPONSE_BORDER_LEFT: Callable[[int], int] = lambda i: OFFSET + (i * 12) - 12
+# Scrapre response end infohash data
+SCRAPE_RESPONSE_BORDER_RIGHT: Callable[[int], int] = lambda i: OFFSET + (i * 12)
+
+
+class TRACKER_ACTION:
+    CONNECT = 0
+    SCRAPE = 2
+
+
+def is_infohash_valid(infohash: str) -> bool:
+    """
+    Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
+    :param infohash:
+    :return: True if infohash is valid, False otherwise
+    """
+    if not isinstance(infohash, str):
+        return False
+
+    if len(infohash) == 40:
+        return True
+    return False
+
+
+def filter_valid_infohashes(infohashes: list) -> list:
+    """Returns a list of valid infohashes"""
+    return list(filter(lambda i: is_infohash_valid(i), infohashes))
+
+
+def is_not_blank(s: str) -> bool:
+    return bool(s and s.strip())
+
+
+def get_transaction_id() -> int:
+    return random.randrange(1, 65535)
 
 
 class Connection:
     def __init__(self, hostname, port, timeout):
         self.hostname = hostname
         self.port = port
-        self.sock = self.connect(
-            self.hostname, self.port, timeout)
+        self.sock = self.connect(timeout)
 
-    def connect(self, hostname, port, timeout):
-        # create socket
+    def __str__(self) -> str:
+        return f"{self.hostname}:{self.port}"
+
+    def connect(self, timeout):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.settimeout(timeout)
         try:
-            # connect socket
             sock.connect((self.hostname, self.port))
-        except socket.error:
+        except socket.error as e:
             sock.close()
-            return None                                                                              
+            logger.warning("Could not connect to %s: %s", self, e)
+            return None
         return sock
-
-    def close(self):
-        """
-        Closes a socket connection gracefully
-        :return: None
-        """
-        self.sock.close()
 
 
 class Scraper:
-    def __init__(self, **kwargs):
+    def __init__(
+        self, trackers: List = [], infohashes: Tuple[List, str] = [], timeout: int = 10
+    ):
         """
         Launches a scraper bound to a particular tracker
         :Keyword Arguments:
@@ -54,110 +92,156 @@ class Scraper:
             :param infohashes (list): List of infohashes SHA-1 representation of the ```info``` key in the torrent file that should be parsed e.g. 95105D919C10E64AE4FA31067A8D37CCD33FE92D
             :param timeout (int): Timeout value in seconds, program exits if no response received within this period
         """
-        self.trackers = kwargs.get("trackers")
-        self.infohashes = kwargs.get("infohashes")
-        self.timeout = kwargs.get("timeout", 10)
+        self.trackers = trackers
+        self.infohashes = infohashes
+        self.timeout = timeout
 
+        self.good_infohashes = self.get_good_infohashes()
 
-    def parse_infohashes(self) -> list:
-        infohashes = self.infohashes
-        if isinstance(infohashes, str):
-            if "," not in infohashes:
-                if self.is_40_char_long(infohashes):
-                    return [infohashes]
-            if "," in infohashes:
-                infohashes = infohashes.split(',')
-                return list(filter(lambda infohash: self.is_40_char_long(infohash) is True, infohashes))
-        if isinstance(infohashes, list):
-            return list(filter(lambda infohash: self.is_40_char_long(infohash) is True, infohashes))
-        return None
-
-    def is_not_blank(self, s):
-        return bool(s and s.strip())
+    def get_good_infohashes(self) -> list:
+        if getattr(self, "good_infohashes", None):
+            return self.good_infohashes
+            
+        good_infohashes = []
+        if isinstance(self.infohashes, str):
+            infohashes_list = self.infohashes.split(",")
+            good_infohashes = filter_valid_infohashes(infohashes_list)
+        elif isinstance(self.infohashes, list):
+            good_infohashes = filter_valid_infohashes(self.infohashes)
+        else:
+            logger.error(
+                "Infohashes are not supported in type: %s. Only list of strings or comma separated string.",
+                type(self.infohashes),
+            )
+        return good_infohashes
 
     def get_trackers(self) -> list:
-        if self.trackers is None:
+        if not self.trackers:
             trackers = list()
-            response = requests.get('https://newtrackon.com/api/stable')
+            response = requests.get("https://newtrackon.com/api/stable")
             response = io.StringIO(response.text)
             for line in response.readlines():
-                if self.is_not_blank(line):
+                if is_not_blank(line):
                     line = line.rstrip()
                     trackers.append(line)
         else:
             trackers = self.trackers
         trackers = list(map(lambda tracker: urlparse(tracker), trackers))
-        trackers = list(filter(lambda tracker: tracker.scheme == 'udp', trackers))
+        trackers = list(filter(lambda tracker: tracker.scheme == "udp", trackers))
         return trackers
 
-    def scrape_tracker(self, tracker):
-        self.connection = Connection(tracker.hostname, tracker.port, self.timeout)
-        
-        # Quit scraping if there is no connection
-        if self.connection.sock is None:
-            return []
-
-        # Protocol says to keep it that way
-        protocol_id = 0x41727101980
-
-        # We should get the same in response
-        transaction_id = random.randrange(1, 65535)
-
+    def _connect_request(self, transaction_id: int):
         # Send a Connect Request
-        packet = struct.pack(">QLL", protocol_id, 0, transaction_id)
+        packet = struct.pack(
+            ">QLL", PROTOCOL_ID, TRACKER_ACTION.CONNECT, transaction_id
+        )
         self.connection.sock.send(packet)
-
         # Receive a Connect Request response
-        try: 
-            res = self.connection.sock.recv(16)
-        except:
-            return []
-        _, transaction_id, connection_id = struct.unpack(">LLQ", res)
+        res = self.connection.sock.recv(16)
+        try:
+            _, response_transaction_id, connection_id = struct.unpack(">LLQ", res)
+        except struct.error as e:
+            logger.error("Unpacking connect request response failed: %s", e)
+            raise Exception("Unpacking connect request response failed: %s" % e)
 
-        results = list()
+        return response_transaction_id, connection_id
 
-        logger.debug("Parsing list of infohashes")
-        # holds good infohashes for unpacking, used to weed out bad infohashes
-        _good_infohashes = list()
-        # holds bad error messages
-        _bad_results = list()
-        packet_hashes = bytearray(str(), 'utf-8')
-        for infohash in self.infohashes:
-            if not self.is_40_char_long(infohash):
-                _bad_results.append(
-                    {"infohash": infohash, "error": "Bad infohash"})
-                continue
-            try:
-                packet_hashes += binascii.unhexlify(infohash)
-                _good_infohashes.append(infohash)
-            except Exception as e:
-                _bad_results.append(
-                    {"infohash": infohash, "error": f'Error: {e}'})
-                continue
-        packet = struct.pack(">QLL", connection_id, 2,
-                             transaction_id) + packet_hashes
+    def _scrape_response(self, transaction_id: int, connection_id: int):
+        packet_hashes = self.get_packet_hashes()
+        packet = (
+            struct.pack(">QLL", connection_id, TRACKER_ACTION.SCRAPE, transaction_id,)
+            + packet_hashes
+        )
         self.connection.sock.send(packet)
 
         # Scrape response
         try:
-            res = self.connection.sock.recv(8 + (12 * len(self.infohashes)))
+            res = self.connection.sock.recv(8 + (12 * len(self.good_infohashes)))
         except socket.timeout as e:
-            logger.debug(f'socket.timeout {e}')
-            return ['socket.timeout error']
+            logger.error("Socket timeout for %s: %s", self.connection, e)
+            return ["Socket timeout for %s: %s" % (self.connection, e)]
 
-        index = 8
-        tracker = f'{tracker.scheme}//:{tracker.netloc}'
-        for i in range(1, len(_good_infohashes) + 1):
-            logger.debug("Offset: {} {}".format(
-                index + (i * 12) - 12, index + (i * 12)))
-            seeders, completed, leechers = struct.unpack(
-                ">LLL", res[index + (i * 12) - 12: index + (i * 12)])
-            results.append({ "infohash": self.infohashes[i - 1],
-                            "seeders": seeders,
-                            "completed": completed,
-                            "leechers": leechers})
-        results += _bad_results
-        return {'tracker': tracker, 'results': results}
+        results = list()
+        for i, infohash in enumerate(self.good_infohashes, start=1):
+            result = {
+                "infohash": infohash,
+            }
+
+            response = res[
+                SCRAPE_RESPONSE_BORDER_LEFT(i) : SCRAPE_RESPONSE_BORDER_RIGHT(i)
+            ]
+            if len(response) != struct.calcsize(">LLL"):
+                # TODO: Improve error messages
+                result[
+                    "error"
+                ] = f"Could not get stats for infohash [{self.connection}]"
+                results.append(result)
+                logger.error("Result error: %s", result)
+                continue
+            seeders, completed, leechers = struct.unpack(">LLL", response)
+            results.append(
+                {
+                    "infohash": infohash,
+                    "seeders": seeders,
+                    "completed": completed,
+                    "leechers": leechers,
+                }
+            )
+
+        return results
+
+    def get_packet_hashes(self) -> bytearray:
+        packet_hashes = bytearray(str(), "utf-8")
+        for infohash in self.good_infohashes:
+            try:
+                packet_hashes += binascii.unhexlify(infohash)
+            except binascii.Error as e:
+                logger.warning(
+                    "Infohash %s is invalid. Error when preparing packet hashes: %s",
+                    infohash,
+                    e,
+                )
+
+        return packet_hashes
+
+    def scrape_tracker(self, tracker):
+        """
+        To understand how data is retrieved visit: https://www.bittorrent.org/beps/bep_0015.html
+        """
+
+        logger.debug("Parsing list of infohashes [%s]", tracker.netloc)
+        self.connection = Connection(tracker.hostname, tracker.port, self.timeout)
+        tracker_url = f"{tracker.scheme}//:{tracker.netloc}"
+        # Quit scraping if there is no connection
+        if self.connection.sock is None:
+            # TODO: Return info which tracker failed
+            return []
+
+        # We should get the same value in a response
+        transaction_id = get_transaction_id()
+        try:
+            response_transaction_id, connection_id = self._connect_request(
+                transaction_id,
+            )
+        except socket.timeout as e:
+            logger.error("Socket timeout for %s: %s", self.connection, e)
+            return ["Socket timeout for %s: %s" % (self.connection, e)]
+
+        if transaction_id != response_transaction_id:
+            raise RuntimeError(
+                "Transaction ID doesnt match in connect request [%s]. Expected %d, got %d"
+                % (self.connection, transaction_id, response_transaction_id,)
+            )
+
+        # holds bad error messages
+        _bad_infohashes = list()
+        for infohash in self.infohashes:
+            if not is_infohash_valid(infohash):
+                _bad_infohashes.append({"infohash": infohash, "error": "Bad infohash"})
+
+        results = self._scrape_response(transaction_id, connection_id)
+        results += _bad_infohashes
+        return {"tracker": tracker_url, "results": results}
 
     def scrape(self):
         """
@@ -167,32 +251,22 @@ class Scraper:
         :return: [(infohash, seeders, leechers, completed),...]
         """
 
+        print(self.get_good_infohashes())
         self.trackers = self.get_trackers()
-        
-        infohashes = self.parse_infohashes()
-        if infohashes is None or len(infohashes) == 0:
+
+        if not self.good_infohashes:
             logger.info("Nothing to do. No infohashes passed the checks")
             return []
 
-        logger.info(f'Scraping infohashes: {infohashes}')
+        logger.info(f"Scraping infohashes: {self.good_infohashes}")
 
         p = Pool()
         results = p.map_async(self.scrape_tracker, self.trackers)
         p.close()
-        while (True):
-            if (results.ready()): break
-            _ = results._number_left
+        while True:
+            if results.ready():
+                break
             time.sleep(0.3)
         results = list(filter(lambda result: result != [], results.get()))
 
         return results
-              
-    def is_40_char_long(self, s: str):
-        """
-        Checks if the infohash is 20 bytes long, confirming its truly of SHA-1 nature
-        :param s:
-        :return: True if infohash is valid, False otherwise
-        """
-        if len(s) == 40:
-            return True
-        return False
