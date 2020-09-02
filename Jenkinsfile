@@ -25,5 +25,17 @@ pipeline {
                 }
             }
         }
+        stage('Build and upload to PyPi') { 
+            environment {
+                TWINE_USERNAME    = credentials('twine-username')
+                TWINE_PASSWORD = credentials('twine-password')
+            }
+            steps {
+                withEnv(["HOME=${env.WORKSPACE}"]) {
+                    sh 'python setup.py sdist bdist_wheel' 
+                    sh 'twine upload dist/*'
+                }
+            }
+        }
     }
 }
