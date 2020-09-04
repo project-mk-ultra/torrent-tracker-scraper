@@ -26,6 +26,8 @@ OFFSET = 8
 SCRAPE_RESPONSE_BORDER_LEFT: Callable[[int], int] = lambda i: OFFSET + (i * 12) - 12
 # Scrapre response end infohash data
 SCRAPE_RESPONSE_BORDER_RIGHT: Callable[[int], int] = lambda i: OFFSET + (i * 12)
+# UDP Packet Buffer Size
+UDP_PACKET_BUFFER_SIZE = 512
 
 
 class TRACKER_ACTION:
@@ -137,7 +139,7 @@ class Scraper:
         )
         self.connection.sock.send(packet)
         # Receive a Connect Request response
-        res = self.connection.sock.recv(16)
+            res = self.connection.sock.recv(UDP_PACKET_BUFFER_SIZE)
         try:
             _, response_transaction_id, connection_id = struct.unpack(">LLQ", res)
         except struct.error as e:
@@ -156,8 +158,7 @@ class Scraper:
 
         # Scrape response
         try:
-            res = self.connection.sock.recv(8 + (12 * len(self.good_infohashes)))
-        except socket.timeout as e:
+            res = self.connection.sock.recv(UDP_PACKET_BUFFER_SIZE)
             logger.error("Socket timeout for %s: %s", self.connection, e)
             return ["Socket timeout for %s: %s" % (self.connection, e)]
 
