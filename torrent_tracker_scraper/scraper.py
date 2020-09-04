@@ -141,7 +141,7 @@ class Scraper:
         # Receive a Connect Request response
             res = self.connection.sock.recv(UDP_PACKET_BUFFER_SIZE)
         try:
-            _, response_transaction_id, connection_id = struct.unpack(">LLQ", res)
+            _, response_transaction_id, connection_id = struct.unpack(">LLQ", res[:16])
         except struct.error as e:
             logger.error("Unpacking connect request response failed: %s", e)
             raise Exception("Unpacking connect request response failed: %s" % e)
