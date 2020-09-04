@@ -160,8 +160,9 @@ class Scraper:
         try:
             res = self.connection.sock.recv(UDP_PACKET_BUFFER_SIZE)
             res = res[:8 + (12 * len(self.good_infohashes))]
-            logger.error("Socket timeout for %s: %s", self.connection, e)
-            return ["Socket timeout for %s: %s" % (self.connection, e)]
+        except socket.error as e:
+            logger.error("Receiving scrape response failed %s: %s", self.connection, e)
+            return ["Receiving scrape response failed %s: %s" % (self.connection, e)]
 
         results = list()
         for i, infohash in enumerate(self.good_infohashes, start=1):
