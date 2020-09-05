@@ -215,7 +215,7 @@ class Scraper:
     def scrape_tracker(self, tracker) -> dict:
         """
         To understand how data is retrieved visit:
-         https://www.bittorrent.org/beps/bep_0015.html
+        https://www.bittorrent.org/beps/bep_0015.html
         """
 
         logger.debug("Connecting to [%s]", tracker.netloc)
