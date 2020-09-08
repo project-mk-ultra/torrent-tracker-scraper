@@ -9,6 +9,7 @@ pytest = "*"
 importlib-metadata = "*"
 black = "==19.10b0"
 pylint = "*"
+pytest-cov = "*"
 
 [packages]
 requests = "*"
