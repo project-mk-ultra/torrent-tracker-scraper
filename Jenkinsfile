@@ -4,6 +4,7 @@ pipeline {
     }
     environment{
         HOME = "${env.WORKSPACE}"
+        CODECOV_TOKEN = credentials("codecov.io-torrent-tracker-scraper")
     }
     agent {
         docker {
