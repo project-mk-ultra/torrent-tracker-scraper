@@ -12,6 +12,7 @@ pylint = "*"
 setuptools = "*"
 wheel = "*"
 bump = "*"
+pytest-cov = "*"
 
 [packages]
 requests = "*"
