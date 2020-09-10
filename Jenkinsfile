@@ -5,6 +5,8 @@ pipeline {
     environment{
         HOME = "${env.WORKSPACE}"
         CODECOV_TOKEN = credentials("codecov.io-torrent-tracker-scraper")
+        TWINE_USERNAME    = credentials('twine-username')
+        TWINE_PASSWORD = credentials('twine-password')
     }
     agent {
         docker {
@@ -31,6 +33,15 @@ pipeline {
         stage('Upload Coverage badge') { 
             steps {
                 sh 'curl -s https://codecov.io/bash | bash -s'
+            }
+        }
+        stage('Upload to PyPi') { 
+            when {
+                branch "master"
+            }
+            steps {
+                sh 'python setup.py sdist bdist_wheel' 
+                sh 'twine upload dist/*'
             }
         }
     }

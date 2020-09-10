@@ -9,6 +9,9 @@ pytest = "*"
 importlib-metadata = "*"
 black = "==19.10b0"
 pylint = "*"
+setuptools = "*"
+wheel = "*"
+bump = "*"
 pytest-cov = "*"
 
 [packages]

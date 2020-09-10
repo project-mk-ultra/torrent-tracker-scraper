@@ -108,12 +108,17 @@ pipenv run pytest
 
 ## Help/Contributing
 
-Use the normal GitHub bug reporting flow i.e Create an issue here
-<https://github.com/project-mk-ultra/torrent-tracker-scraper/issues>.
+1. Install dev dependencies `pipenv install --dev`
 
-Fork the code, make your changes and create a pull request.
+2. Make your changes
 
-<img src="docs/imgs/thief-tiptoe.jpg" width="400">
+3. Make sure your tests pass `pipenv run pytest`
+
+4. Create an issue here
+
+    <https://github.com/project-mk-ultra/torrent-tracker-scraper/issues>.
+
+    <img src="docs/imgs/thief-tiptoe.jpg" width="400">
 
 ## Contributors (in alphabetical order)
 
