@@ -120,10 +120,6 @@ pipenv run pytest
 
     <img src="docs/imgs/thief-tiptoe.jpg" width="400">
 
-5. Always bump the version number before making a pull request from the `feature_branch` to `develop` by running
-
-        bump
-
 ## Contributors (in alphabetical order)
 
 1. <https://github.com/49e94b8f256530dc0d41f740dfe8a4c1>
