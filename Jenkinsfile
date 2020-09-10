@@ -36,13 +36,12 @@ pipeline {
             }
         }
         stage('Upload to PyPi') { 
+            when {
+                branch "master"
+            }
             steps {
-                if(env.BRANCH_NAME == 'master'){
-                    sh 'python setup.py sdist bdist_wheel' 
-                    sh 'twine upload dist/*'
-                }else{
-                    echo 'Skip uploading to PyPi'
-                }
+                sh 'python setup.py sdist bdist_wheel' 
+                sh 'twine upload dist/*'
             }
         }
     }
