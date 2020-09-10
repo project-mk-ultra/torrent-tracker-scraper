@@ -30,4 +30,5 @@ pipeline {
                 sh 'curl -s https://codecov.io/bash | bash -s'
             }
         }
+    }
 }
