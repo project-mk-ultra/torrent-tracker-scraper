@@ -5,6 +5,8 @@ pipeline {
     environment{
         HOME = "${env.WORKSPACE}"
         CODECOV_TOKEN = credentials("codecov.io-torrent-tracker-scraper")
+        TWINE_USERNAME    = credentials('twine-username')
+        TWINE_PASSWORD = credentials('twine-password')
     }
     agent {
         docker {
@@ -34,14 +36,12 @@ pipeline {
             }
         }
         stage('Upload to PyPi') { 
-            environment {
-                TWINE_USERNAME    = credentials('twine-username')
-                TWINE_PASSWORD = credentials('twine-password')
-            }
             steps {
-                withEnv(["HOME=${env.WORKSPACE}"]) {
+                if(env.BRANCH_NAME == 'master'){
                     sh 'python setup.py sdist bdist_wheel' 
                     sh 'twine upload dist/*'
+                }else{
+                    echo 'Skip uploading to PyPi'
                 }
             }
         }
