@@ -9,6 +9,7 @@ pipeline {
     agent {
         docker {
             image 'python:3.8-slim-buster' 
+            args '-u root:sudo -v $HOME/workspace/torrent-tracker-scraper:/torrent-tracker-scraper'
         }
     }
     stages {
@@ -18,6 +19,8 @@ pipeline {
                 sh('pip install --user pipenv')
                 sh '$HOME/.local/bin/pipenv lock --dev --requirements > requirements.txt' 
                 sh 'pip install --user -r requirements.txt'
+                sh 'apt-get update -y'
+                sh 'apt install curl -y'
             }
         }
          stage('Test') { 
