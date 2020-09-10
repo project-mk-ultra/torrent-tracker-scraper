@@ -2,7 +2,8 @@
 
 A UDP torrent tracker scraper written in Python 3
 
-![Jenkins](https://jenkins.psr42.online/job/torrent-tracker-scraper/badge/icon?)
+![Jenkins](https://jenkins.psr42.online/buildStatus/icon?job=torrent-tracker-scraper)
+[![codecov](https://codecov.io/gh/project-mk-ultra/torrent-tracker-scraper/branch/master/graph/badge.svg)](https://codecov.io/gh/project-mk-ultra/torrent-tracker-scraper)
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
@@ -107,12 +108,17 @@ pipenv run pytest
 
 ## Help/Contributing
 
-Use the normal GitHub bug reporting flow i.e Create an issue here
-<https://github.com/project-mk-ultra/torrent-tracker-scraper/issues>.
+1. Install dev dependencies `pipenv install --dev`
 
-Fork the code, make your changes and create a pull request.
+2. Make your changes
 
-<img src="docs/imgs/thief-tiptoe.jpg" width="400">
+3. Make sure your tests pass `pipenv run pytest`
+
+4. Create an issue here
+
+    <https://github.com/project-mk-ultra/torrent-tracker-scraper/issues>.
+
+    <img src="docs/imgs/thief-tiptoe.jpg" width="400">
 
 ## Contributors (in alphabetical order)
 
