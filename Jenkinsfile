@@ -35,7 +35,7 @@ pipeline {
         }
         stage('Upload to PyPi') { 
             environment {
-                TWINE_USERNAME    = credentials('twine-username')
+                TWINE_USERNAME = credentials('twine-username')
                 TWINE_PASSWORD = credentials('twine-password')
             }
             steps {
