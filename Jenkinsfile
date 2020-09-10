@@ -9,6 +9,7 @@ pipeline {
     agent {
         docker {
             image 'python:3.8-slim-buster' 
+            args '-u root:sudo -v $HOME/workspace/torrent-tracker-scraper:/torrent-tracker-scraper'
         }
     }
     stages {
@@ -18,16 +19,19 @@ pipeline {
                 sh('pip install --user pipenv')
                 sh '$HOME/.local/bin/pipenv lock --dev --requirements > requirements.txt' 
                 sh 'pip install --user -r requirements.txt'
+                sh 'apt-get update -y'
+                sh 'apt install curl -y'
             }
         }
          stage('Test') { 
             steps {
                 sh 'python -m pytest --cov=torrent_tracker_scraper/ --cov-report xml' 
             }
-        },
+        }
         stage('Upload Coverage badge') { 
             steps {
                 sh 'curl -s https://codecov.io/bash | bash -s'
             }
+        }
     }
 }
