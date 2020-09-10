@@ -24,10 +24,10 @@ pipeline {
             steps {
                 sh 'python -m pytest --cov=torrent_tracker_scraper/ --cov-report xml' 
             }
-        },
+        }
         stage('Upload Coverage badge') { 
             steps {
                 sh 'curl -s https://codecov.io/bash | bash -s'
             }
-    }
+        }
 }
