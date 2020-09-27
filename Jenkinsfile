@@ -2,10 +2,10 @@ pipeline {
     options {
         buildDiscarder(logRotator(numToKeepStr: '7', artifactNumToKeepStr: '7'))
     }
-    environment{
+    environment {
         CODECOV_TOKEN = credentials("codecov.io-torrent-tracker-scraper")
         HOME = "${env.WORKSPACE}"
-        TWINE_USERNAME    = credentials('twine-username')
+        TWINE_USERNAME = credentials('twine-username')
         TWINE_PASSWORD = credentials('twine-password')
     }
     agent {
@@ -23,8 +23,8 @@ pipeline {
         }
         stage('Install Python dependencies') { 
             steps {
-                sh('python --version')
-                sh('pip install --user pipenv')
+                sh 'python --version'
+                sh 'pip install --user pipenv'
                 sh '$HOME/.local/bin/pipenv lock --dev --requirements > requirements.txt' 
                 sh 'pip install --user -r requirements.txt'
             }
