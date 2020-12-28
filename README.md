@@ -2,7 +2,7 @@
 
 A UDP torrent tracker scraper written in Python 3
 
-![Jenkins](https://jenkins.psr42.online/job/torrent-tracker-scraper/badge/icon?)
+![Jenkins](https://jenkins.psr42.com/buildStatus/icon?job=torrent-tracker-scraper)
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
