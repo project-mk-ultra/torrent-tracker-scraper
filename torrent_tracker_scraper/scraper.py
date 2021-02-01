@@ -9,7 +9,6 @@ import struct
 import time
 from multiprocessing import Pool
 from typing import Callable, List, Tuple
-from urllib.parse import urlparse
 
 import requests
 
@@ -60,6 +59,11 @@ def is_not_blank(s: str) -> bool:
 
 def get_transaction_id() -> int:
     return random.randrange(1, 65535)
+
+
+def logAndSetError(result, msg: str):
+    logger.error(msg)
+    result["error"] = msg
 
 
 class Connection:
@@ -237,28 +241,21 @@ class Scraper:
                 result["error"] = error
                 return result
         except socket.error as e:
-            logger.error("Connect request failed for %s: %s", self.connection, e)
-            result["error"] = "Connect request failed for %s: %s" % (self.connection, e)
+            msg = f"Connect request failed for {self.connection}: {e}"
+            logAndSetError(result, msg)
             return result
 
         if response_transaction_id == 0:
-            logger.error(
-                "Response transaction_id==0 meaning something went wrong during the connect request"
-            )
-            result[
-                "error"
-            ] = "Response transaction_id==0 meaning something went wrong during the connect request"
+            msg = "Response transaction_id==0 meaning something went wrong during the connect request"
+            logAndSetError(result, msg)
             return result
 
         if transaction_id != response_transaction_id:
-            logger.error(
-                "Response transaction_id doesnt match in connect request [%s]. Expected %d, got %d"
-                % (self.connection, transaction_id, response_transaction_id,)
+            msg = "Response transaction_id doesnt match in connect request [{}]. Expected {}, got {}".format(
+                self.connection, transaction_id, response_transaction_id
             )
-            result["error"] = (
-                "Response transaction_id doesnt match in connect request [%s]. Expected %d, got %d"
-                % (self.connection, transaction_id, response_transaction_id,)
-            )
+            logAndSetError(result, msg)
+
             return result
 
         # holds bad error messages
