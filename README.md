@@ -2,8 +2,7 @@
 
 A UDP torrent tracker scraper written in Python 3
 
-![Jenkins](https://jenkins.psr42.online/buildStatus/icon?job=torrent-tracker-scraper)
-[![codecov](https://codecov.io/gh/project-mk-ultra/torrent-tracker-scraper/branch/master/graph/badge.svg)](https://codecov.io/gh/project-mk-ultra/torrent-tracker-scraper)
+![Jenkins](https://jenkins.psr42.com/buildStatus/icon?job=torrent-tracker-scraper)
 [![PyPI version](https://badge.fury.io/py/torrent-tracker-scraper.svg)](https://badge.fury.io/py/torrent-tracker-scraper)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
@@ -116,9 +115,9 @@ pipenv run pytest
 
 4. Create an issue here
 
-    <https://github.com/project-mk-ultra/torrent-tracker-scraper/issues>.
+   <https://github.com/project-mk-ultra/torrent-tracker-scraper/issues>.
 
-    <img src="docs/imgs/thief-tiptoe.jpg" width="400">
+   <img src="docs/imgs/thief-tiptoe.jpg" width="400">
 
 ## Contributors (in alphabetical order)
 
