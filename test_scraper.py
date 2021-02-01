@@ -1,6 +1,6 @@
 from socket import socket
 
-import pytest
+import pytest, os
 from torrent_tracker_scraper import scraper
 from torrent_tracker_scraper.scraper import Connection
 
@@ -113,10 +113,10 @@ def test_get_trackers_return_type(scraper_basic):
     assert type(scraper_basic.get_trackers()) == list
 
 
-def test_connect_request(monkeypatch, scraper_basic):
+def test_connect_request_success(monkeypatch, scraper_basic):
     recv = lambda s, f: scraper_basic.connect_response
     monkeypatch.setattr(socket, "recv", recv)
-    response_transaction_id, connection_id = scraper_basic._connect_request(
+    response_transaction_id, connection_id, _ = scraper_basic._connect_request(
         scraper_basic.transaction_id
     )
 
@@ -129,7 +129,7 @@ def test_connect_request(monkeypatch, scraper_basic):
 def test_connect_request_failure(monkeypatch, scraper_basic):
     recv = lambda s, f: b"\x00\x00\x00\x00"
     monkeypatch.setattr(socket, "recv", recv)
-    with pytest.raises(Exception) as e:
-        scraper_basic._connect_request(123)
+    transaction_id, _, error = scraper_basic._connect_request(123)
 
-    assert "Unpacking connect request response failed" in str(e.value)
+    assert transaction_id == 0
+    assert error is not None
