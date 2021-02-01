@@ -13,6 +13,8 @@ setuptools = "*"
 wheel = "*"
 bump = "*"
 pytest-cov = "*"
+gitchangelog = "*"
+pystache = "*"
 
 [packages]
 requests = "*"
