@@ -10,6 +10,8 @@ import time
 from multiprocessing import Pool
 from typing import Callable, List, Tuple
 from urllib.parse import urlparse
+from pathlib import Path
+
 
 import requests
 
@@ -83,7 +85,7 @@ class Connection:
 
 class Scraper:
     def __init__(
-        self, trackers: List = [], infohashes: Tuple[List, str] = [], timeout: int = 10
+        self, trackerfile: str = "", trackers: List = [], infohashes: Tuple[List, str] = [], timeout: int = 10
     ):
         """
         Launches a scraper bound to a particular tracker
@@ -92,6 +94,7 @@ class Scraper:
             :param infohashes (list): List of infohashes SHA-1 representation of the ```info``` key in the torrent file that should be parsed e.g. 95105D919C10E64AE4FA31067A8D37CCD33FE92D
             :param timeout (int): Timeout value in seconds, program exits if no response received within this period
         """
+        self.trackerfile = trackerfile
         self.trackers = trackers
         self.infohashes = infohashes
         self.timeout = timeout
@@ -115,9 +118,27 @@ class Scraper:
             )
         return good_infohashes
 
+    def get_trackers_viafile(self,trackers,filename):
+        my_file = Path(filename)
+        try:
+            my_abs_path = my_file.resolve(strict=True)
+        except FileNotFoundError as e:
+            logger.error("External tracker file not found: %s", e)
+            #raise Exception("External tracker file not found: %s" % e)
+        else:
+            file1 = open(filename, 'r')
+            for line in file1.readlines():
+                if is_not_blank(line):
+                    trackers.append(line.rstrip())
+
     def get_trackers(self) -> list:
         if not self.trackers:
             trackers = list()
+            if hasattr(self, "trackerfile"):
+                if self.trackerfile != '':
+                    splitted = self.trackerfile.split(',')
+                    for filepath in splitted:
+                        self.get_trackers_viafile(trackers,filepath)
             response = requests.get("https://newtrackon.com/api/stable")
             response = io.StringIO(response.text)
             for line in response.readlines():
@@ -137,7 +158,11 @@ class Scraper:
         )
         self.connection.sock.send(packet)
         # Receive a Connect Request response
-        res = self.connection.sock.recv(16)
+        try:
+            res = self.connection.sock.recv(16)
+        except ConnectionResetError as e:
+            return -1, "Connection reset error: for {}: {}".format(self.connection, e)
+            #raise Exception("Connection reset error: %s" % e)
         try:
             _, response_transaction_id, connection_id = struct.unpack(">LLQ", res)
         except struct.error as e:
@@ -211,7 +236,7 @@ class Scraper:
 
         logger.debug("Parsing list of infohashes [%s]", tracker.netloc)
         self.connection = Connection(tracker.hostname, tracker.port, self.timeout)
-        tracker_url = f"{tracker.scheme}//:{tracker.netloc}"
+        tracker_url = f"{tracker.scheme}://{tracker.netloc}"
         # Quit scraping if there is no connection
         if self.connection.sock is None:
             # TODO: Return info which tracker failed
@@ -226,7 +251,9 @@ class Scraper:
         except socket.timeout as e:
             logger.error("Socket timeout for %s: %s", self.connection, e)
             return ["Socket timeout for %s: %s" % (self.connection, e)]
-
+        if response_transaction_id == -1:
+            logger.error(connection_id)
+            return [connection_id]
         if transaction_id != response_transaction_id:
             raise RuntimeError(
                 "Transaction ID doesnt match in connect request [%s]. Expected %d, got %d"
@@ -242,6 +269,9 @@ class Scraper:
         results = self._scrape_response(transaction_id, connection_id)
         results += _bad_infohashes
         return {"tracker": tracker_url, "results": results}
+
+    def Addtrackfile(self, filename): #comma seperated lists of files to read trackers from
+        self.trackerfile += filename
 
     def scrape(self):
         """
