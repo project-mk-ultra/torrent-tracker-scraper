@@ -226,6 +226,10 @@ class Scraper:
         except socket.timeout as e:
             logger.error("Socket timeout for %s: %s", self.connection, e)
             return ["Socket timeout for %s: %s" % (self.connection, e)]
+        except ConnectionRefusedError as e:
+            logger.error("Connection refused for %s: %s", self.connection, e)
+            return ["Connection refused for %s: %s" % (self.connection, e)]
+
 
         if transaction_id != response_transaction_id:
             raise RuntimeError(
