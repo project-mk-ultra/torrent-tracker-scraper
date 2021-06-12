@@ -9,6 +9,7 @@ import struct
 import time
 from multiprocessing import Pool
 from typing import Callable, List, Tuple
+from urllib.parse import urlparse
 
 import requests
 
@@ -80,6 +81,8 @@ class Connection:
         sock.settimeout(timeout)
         try:
             sock.connect((self.hostname, self.port))
+        # TODO socket.error is deprecated since Python 3.3
+        # https://docs.python.org/3/library/socket.html#socket.error
         except socket.error as e:
             sock.close()
             logger.warning("Could not connect to %s: %s", self, e)
@@ -145,6 +148,8 @@ class Scraper:
         # Receive a Connect Request response
         try:
             res = self.connection.sock.recv(UDP_PACKET_BUFFER_SIZE)
+        # TODO socket.error is deprecated since Python 3.3
+        # https://docs.python.org/3/library/socket.html#socket.error
         except (socket.error, socket.timeout) as e:
             logger.error("Receiving connect request response failed: %s", e)
             return 0, None, f"Receiving connect request response failed: {e}"
@@ -169,6 +174,8 @@ class Scraper:
         try:
             res = self.connection.sock.recv(UDP_PACKET_BUFFER_SIZE)
             res = res[: 8 + (12 * len(self.good_infohashes))]
+        # TODO socket.error is deprecated since Python 3.3
+        # https://docs.python.org/3/library/socket.html#socket.error
         except (socket.timeout, socket.error) as e:
             logger.error("Receiving scrape response failed %s: %s", self.connection, e)
             return None, f"Receiving scrape response failed {self.connection}: {e}"
@@ -240,6 +247,12 @@ class Scraper:
             if error:
                 result["error"] = error
                 return result
+        except ConnectionRefusedError as e:
+            msg = "Connection refused for %s: %s" % (self.connection, e)
+            logAndSetError(result, msg)
+            return result
+        # TODO: `socket.error` has been deprecated since Python3
+        # https://docs.python.org/3/library/socket.html#socket.error
         except socket.error as e:
             msg = f"Connect request failed for {self.connection}: {e}"
             logAndSetError(result, msg)
