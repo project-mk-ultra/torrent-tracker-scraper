@@ -26,6 +26,8 @@ OFFSET = 8
 SCRAPE_RESPONSE_BORDER_LEFT: Callable[[int], int] = lambda i: OFFSET + (i * 12) - 12
 # Scrapre response end infohash data
 SCRAPE_RESPONSE_BORDER_RIGHT: Callable[[int], int] = lambda i: OFFSET + (i * 12)
+# UDP Packet Buffer Size
+UDP_PACKET_BUFFER_SIZE = 512
 
 
 class TRACKER_ACTION:
@@ -60,6 +62,11 @@ def get_transaction_id() -> int:
     return random.randrange(1, 65535)
 
 
+def log_and_set_error(result, msg: str):
+    logger.error(msg)
+    result["error"] = msg
+
+
 class Connection:
     def __init__(self, hostname, port, timeout):
         self.hostname = hostname
@@ -74,6 +81,8 @@ class Connection:
         sock.settimeout(timeout)
         try:
             sock.connect((self.hostname, self.port))
+        # TODO socket.error is deprecated since Python 3.3
+        # https://docs.python.org/3/library/socket.html#socket.error
         except socket.error as e:
             sock.close()
             logger.warning("Could not connect to %s: %s", self, e)
@@ -101,7 +110,7 @@ class Scraper:
     def get_good_infohashes(self) -> list:
         if getattr(self, "good_infohashes", None):
             return self.good_infohashes
-            
+
         good_infohashes = []
         if isinstance(self.infohashes, str):
             infohashes_list = self.infohashes.split(",")
@@ -130,36 +139,51 @@ class Scraper:
         trackers = list(filter(lambda tracker: tracker.scheme == "udp", trackers))
         return trackers
 
-    def _connect_request(self, transaction_id: int):
+    def _connect_request(self, transaction_id: int) -> (int, int, str):
         # Send a Connect Request
         packet = struct.pack(
             ">QLL", PROTOCOL_ID, TRACKER_ACTION.CONNECT, transaction_id
         )
         self.connection.sock.send(packet)
         # Receive a Connect Request response
-        res = self.connection.sock.recv(16)
         try:
-            _, response_transaction_id, connection_id = struct.unpack(">LLQ", res)
+            res = self.connection.sock.recv(UDP_PACKET_BUFFER_SIZE)
+        # TODO socket.error is deprecated since Python 3.3
+        # https://docs.python.org/3/library/socket.html#socket.error
+        except (socket.error, socket.timeout) as e:
+            logger.error("Receiving connect request response failed: %s", e)
+            return 0, None, f"Receiving connect request response failed: {e}"
+        # Unpack Connect Request response
+        try:
+            _, response_transaction_id, connection_id = struct.unpack(">LLQ", res[:16])
         except struct.error as e:
             logger.error("Unpacking connect request response failed: %s", e)
-            raise Exception("Unpacking connect request response failed: %s" % e)
+            return 0, None, f"Unpacking connect request response failed: {e}"
 
-        return response_transaction_id, connection_id
+        return response_transaction_id, connection_id, None
 
-    def _scrape_response(self, transaction_id: int, connection_id: int):
+    def _scrape_response(self, transaction_id: int, connection_id: int) -> (list, str):
         packet_hashes = self.get_packet_hashes()
         packet = (
-            struct.pack(">QLL", connection_id, TRACKER_ACTION.SCRAPE, transaction_id,)
+            struct.pack(
+                ">QLL",
+                connection_id,
+                TRACKER_ACTION.SCRAPE,
+                transaction_id,
+            )
             + packet_hashes
         )
         self.connection.sock.send(packet)
 
         # Scrape response
         try:
-            res = self.connection.sock.recv(8 + (12 * len(self.good_infohashes)))
-        except socket.timeout as e:
-            logger.error("Socket timeout for %s: %s", self.connection, e)
-            return ["Socket timeout for %s: %s" % (self.connection, e)]
+            res = self.connection.sock.recv(UDP_PACKET_BUFFER_SIZE)
+            res = res[: 8 + (12 * len(self.good_infohashes))]
+        # TODO socket.error is deprecated since Python 3.3
+        # https://docs.python.org/3/library/socket.html#socket.error
+        except (socket.timeout, socket.error) as e:
+            logger.error("Receiving scrape response failed %s: %s", self.connection, e)
+            return None, f"Receiving scrape response failed {self.connection}: {e}"
 
         results = list()
         for i, infohash in enumerate(self.good_infohashes, start=1):
@@ -188,7 +212,7 @@ class Scraper:
                 }
             )
 
-        return results
+        return results, None
 
     def get_packet_hashes(self) -> bytearray:
         packet_hashes = bytearray(str(), "utf-8")
@@ -204,14 +228,16 @@ class Scraper:
 
         return packet_hashes
 
-    def scrape_tracker(self, tracker):
+    def scrape_tracker(self, tracker) -> dict:
         """
-        To understand how data is retrieved visit: https://www.bittorrent.org/beps/bep_0015.html
+        To understand how data is retrieved visit:
+        https://www.bittorrent.org/beps/bep_0015.html
         """
 
-        logger.debug("Parsing list of infohashes [%s]", tracker.netloc)
+        logger.debug("Connecting to [%s]", tracker.netloc)
         self.connection = Connection(tracker.hostname, tracker.port, self.timeout)
         tracker_url = f"{tracker.scheme}//:{tracker.netloc}"
+        result = {"tracker": tracker_url, "results": [], "error": None}
         # Quit scraping if there is no connection
         if self.connection.sock is None:
             # TODO: Return info which tracker failed
@@ -220,18 +246,35 @@ class Scraper:
         # We should get the same value in a response
         transaction_id = get_transaction_id()
         try:
-            response_transaction_id, connection_id = self._connect_request(
+            response_transaction_id, connection_id, error = self._connect_request(
                 transaction_id,
             )
-        except socket.timeout as e:
-            logger.error("Socket timeout for %s: %s", self.connection, e)
-            return ["Socket timeout for %s: %s" % (self.connection, e)]
+            if error:
+                result["error"] = error
+                return result
+        except ConnectionRefusedError as e:
+            msg = "Connection refused for %s: %s" % (self.connection, e)
+            log_and_set_error(result, msg)
+            return result
+        # TODO: `socket.error` has been deprecated since Python3
+        # https://docs.python.org/3/library/socket.html#socket.error
+        except socket.error as e:
+            msg = f"Connect request failed for {self.connection}: {e}"
+            log_and_set_error(result, msg)
+            return result
+
+        if response_transaction_id == 0:
+            msg = "Response transaction_id==0 meaning something went wrong during the connect request"
+            log_and_set_error(result, msg)
+            return result
 
         if transaction_id != response_transaction_id:
-            raise RuntimeError(
-                "Transaction ID doesnt match in connect request [%s]. Expected %d, got %d"
-                % (self.connection, transaction_id, response_transaction_id,)
+            msg = "Response transaction_id doesnt match in connect request [{}]. Expected {}, got {}".format(
+                self.connection, transaction_id, response_transaction_id
             )
+            log_and_set_error(result, msg)
+
+            return result
 
         # holds bad error messages
         _bad_infohashes = list()
@@ -239,9 +282,13 @@ class Scraper:
             if not is_infohash_valid(infohash):
                 _bad_infohashes.append({"infohash": infohash, "error": "Bad infohash"})
 
-        results = self._scrape_response(transaction_id, connection_id)
+        results, error = self._scrape_response(transaction_id, connection_id)
+        if error:
+            result["error"] = error
+            return result
         results += _bad_infohashes
-        return {"tracker": tracker_url, "results": results}
+        result["results"] = results
+        return result
 
     def scrape(self):
         """

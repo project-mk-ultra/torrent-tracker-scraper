@@ -7,8 +7,11 @@ verify_ssl = true
 twine = "*"
 pytest = "*"
 importlib-metadata = "*"
-black = "==19.10b0"
+black = "==21.6b0"
 pylint = "*"
+setuptools = "*"
+wheel = "*"
+pytest-cov = "*"
 
 [packages]
 requests = "*"
