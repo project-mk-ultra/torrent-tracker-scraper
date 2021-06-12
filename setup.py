@@ -15,9 +15,13 @@ setuptools.setup(
     url="https://github.com/49e94b8f256530dc0d41f740dfe8a4c1/torrent-tracker-scraper",
     # packages=setuptools.find_packages(),
     classifiers=(
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
         "Operating System :: OS Independent",
     ),
     install_requires=["requests"],
+    python_requires=">=3.6",
 )
