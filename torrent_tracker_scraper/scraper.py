@@ -62,7 +62,7 @@ def get_transaction_id() -> int:
     return random.randrange(1, 65535)
 
 
-def logAndSetError(result, msg: str):
+def log_and_set_error(result, msg: str):
     logger.error(msg)
     result["error"] = msg
 
@@ -165,7 +165,12 @@ class Scraper:
     def _scrape_response(self, transaction_id: int, connection_id: int) -> (list, str):
         packet_hashes = self.get_packet_hashes()
         packet = (
-            struct.pack(">QLL", connection_id, TRACKER_ACTION.SCRAPE, transaction_id,)
+            struct.pack(
+                ">QLL",
+                connection_id,
+                TRACKER_ACTION.SCRAPE,
+                transaction_id,
+            )
             + packet_hashes
         )
         self.connection.sock.send(packet)
@@ -249,25 +254,25 @@ class Scraper:
                 return result
         except ConnectionRefusedError as e:
             msg = "Connection refused for %s: %s" % (self.connection, e)
-            logAndSetError(result, msg)
+            log_and_set_error(result, msg)
             return result
         # TODO: `socket.error` has been deprecated since Python3
         # https://docs.python.org/3/library/socket.html#socket.error
         except socket.error as e:
             msg = f"Connect request failed for {self.connection}: {e}"
-            logAndSetError(result, msg)
+            log_and_set_error(result, msg)
             return result
 
         if response_transaction_id == 0:
             msg = "Response transaction_id==0 meaning something went wrong during the connect request"
-            logAndSetError(result, msg)
+            log_and_set_error(result, msg)
             return result
 
         if transaction_id != response_transaction_id:
             msg = "Response transaction_id doesnt match in connect request [{}]. Expected {}, got {}".format(
                 self.connection, transaction_id, response_transaction_id
             )
-            logAndSetError(result, msg)
+            log_and_set_error(result, msg)
 
             return result
 
