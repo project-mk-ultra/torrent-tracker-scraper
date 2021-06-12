@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0]
+
 ### Changed
 
 - Return scrape errors as value of `error` key inside result `dict` instead of as a single `list` item by [@zawi99](https://github.com/zawi99)
