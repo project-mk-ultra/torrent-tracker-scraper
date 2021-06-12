@@ -52,6 +52,18 @@ print(results)
             }
         ]
     },
+    {
+        'tracker': 'udp//:bt-trace.adgk.net:6969',
+        'results': [
+            {
+                 'infohash': '82026E5C56F0AEACEDCE2D7BC2074A644BC50990', 'error': 'Could not get stats for infohash [bt-trace.adgk.net:6969]'
+            },
+            {
+                 'infohash': '04D9A2D3FAEA111356519A0E0775E5EAEE9C944A', 'error': 'Could not get stats for infohash [bt-trace.adgk.net:6969]'
+            }
+        ],
+        'error': None
+    }
     ...
 ```
 
