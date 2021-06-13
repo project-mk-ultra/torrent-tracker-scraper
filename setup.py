@@ -5,8 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="torrent-tracker-scraper",
-    version="4.0.0",
-    author="azerty",
+    version="4.1.0",
+    author="ziggs",
     packages=["torrent_tracker_scraper"],
     author_email="kenokech94@gmail.com",
     description="A UDP torrent tracker scraper written in Python 3",
@@ -23,5 +23,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ),
     install_requires=["requests"],
+    setup_requires=["wheel"],
     python_requires=">=3.6",
 )
