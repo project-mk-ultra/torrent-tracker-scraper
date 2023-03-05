@@ -236,7 +236,7 @@ class Scraper:
 
         logger.debug("Connecting to [%s]", tracker.netloc)
         self.connection = Connection(tracker.hostname, tracker.port, self.timeout)
-        tracker_url = f"{tracker.scheme}//:{tracker.netloc}"
+        tracker_url = f"{tracker.scheme}://{tracker.netloc}"
         result = {"tracker": tracker_url, "results": [], "error": None}
         # Quit scraping if there is no connection
         if self.connection.sock is None:
